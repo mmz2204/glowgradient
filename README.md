@@ -1,5 +1,7 @@
 # 🛠️ free-web-tools: Modern Developer & UI Utilities
 
+**Live Demo:** https://erics-tools.netlify.app/
+
 A premium collection of clean, ad-free, and high-performance web utilities. Built with modern UI effects (Glassmorphism) and privacy-first local logic.
 
 ## 🚀 Live Tools Matrix
