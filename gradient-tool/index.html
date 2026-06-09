@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>GlowGradient - Non-Linear Tailwind CSS Gradient Generator</title>
+
+    <meta name="description" content="Generate smooth, beautiful, non-linear gradients for Tailwind CSS and standard CSS. Automatically eliminate muddy/gray mid-tones in your UI designs. Perfect for web designers and developer workflows.">
+
+    <meta name="keywords" content="tailwind gradient generator, css gradient smoother, non-linear gradient, tailwind css tools, muddy mid tones fixer, glow gradient UI">
+    <meta name="google-site-verification" content="WkrQA80HPsg7MNGApgMOcDgwFiZYEQbv4g-8BRQqoDc" />
+
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        body { background-color: #0b0f19; color: #f3f4f6; }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #06b6d4;
+            cursor: pointer;
+            box-shadow: 0 0 10px #06b6d4;
+        }
+    </style>
+</head>
+<body class="h-screen lg:overflow-hidden flex flex-col font-sans antialiased">
+
+    <header class="h-16 border-b border-gray-800 px-6 flex justify-between items-center bg-gray-900/50 backdrop-blur-md shrink-0">
+        <div class="flex items-center space-x-2">
+            <div class="w-4 h-4 rounded-full bg-gradient-to-r from-cyan-400 to-fuchsia-500 animate-pulse"></div>
+            <span class="font-bold text-lg tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">GlowGradient</span>
+            <span class="text-xs bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20 font-mono">v2.2 Pro</span>
+        </div>
+        <div class="text-sm text-gray-400 font-mono hidden sm:block">Status: Perfect Fit 🎯</div>
+    </header>
+
+    <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 max-w-7xl mx-auto w-full min-h-0">
+        
+        <section class="lg:col-span-5 bg-gray-900/60 border border-gray-800 rounded-2xl p-6 flex flex-col justify-between h-full overflow-y-auto">
+            <div class="space-y-5">
+                <h2 class="text-xl font-bold flex items-center gap-2 text-white">
+                    <span>🎛️</span> Controls
+                </h2>
+                
+                <div class="space-y-3">
+                    <label class="block text-sm font-medium text-gray-400">Pick Colors</label>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-gray-800/40 p-3 rounded-xl border border-gray-800 flex items-center justify-between">
+                            <span class="text-xs text-gray-400">From</span>
+                            <input type="color" id="color1" value="#06b6d4" class="w-10 h-10 rounded-lg cursor-pointer bg-transparent border-0">
+                        </div>
+                        <div class="bg-gray-800/40 p-3 rounded-xl border border-gray-800 flex items-center justify-between">
+                            <span class="text-xs text-gray-400">To</span>
+                            <input type="color" id="color2" value="#d946ef" class="w-10 h-10 rounded-lg cursor-pointer bg-transparent border-0">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <label class="font-medium text-gray-400">Gradient Angle</label>
+                        <span id="angleValue" class="text-cyan-400 font-mono">135°</span>
+                    </div>
+                    <input type="range" id="angle" min="0" max="360" value="135" class="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-cyan-500">
+                </div>
+
+                <div class="bg-gradient-to-r from-cyan-950/40 to-purple-950/40 p-4 rounded-xl border border-cyan-800/30 flex items-center justify-between">
+                    <div>
+                        <div class="text-sm font-semibold text-cyan-300 flex items-center gap-1">
+                            ✨ Non-linear Smoothing
+                        </div>
+                        <div class="text-xs text-gray-400 mt-0.5">Eliminate muddy/gray mid-tones</div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer select-none">
+                        <input type="checkbox" id="smoothToggle" class="sr-only peer" checked>
+                        <div class="w-11 h-6 bg-gray-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-gray-800 space-y-3">
+                <div class="flex bg-gray-950 p-1 rounded-lg border border-gray-800 text-xs font-medium">
+                    <button id="tabCss" class="flex-1 py-1.5 rounded-md bg-gray-800 text-white shadow-sm transition">CSS Gradient</button>
+                    <button id="tabTailwind" class="flex-1 py-1.5 rounded-md text-gray-400 hover:text-white transition">Tailwind CSS</button>
+                </div>
+
+                <div class="bg-black/40 p-3.5 rounded-xl border border-gray-800 font-mono text-xs relative max-h-24 overflow-y-auto">
+                    <code id="codeText" class="text-emerald-400 block break-all">background: linear-gradient(135deg, #06b6d4, #d946ef);</code>
+                </div>
+
+                <button id="copyBtn" class="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-xl font-medium hover:opacity-90 active:scale-[0.98] transition shadow-lg shadow-cyan-500/20 cursor-pointer">
+                    📋 Copy Code
+                </button>
+            </div>
+        </section>
+
+        <section class="lg:col-span-7 h-full flex flex-col min-h-0">
+            <div id="previewBg" class="w-full h-full rounded-2xl shadow-2xl relative overflow-hidden transition-all duration-300 flex flex-col items-center justify-center p-6">
+                
+                <div class="w-full max-w-md bg-gray-950/40 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-2xl space-y-6 m-auto">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-lg shadow-inner">🎨</div>
+                        <div>
+                            <h3 class="text-white font-bold text-sm">Live Component Preview</h3>
+                            <p class="text-gray-400 text-xs">See your gradient applied to real UI elements</p>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <h1 id="textPreview" class="text-3xl font-black tracking-tight text-center bg-clip-text text-transparent">
+                            Beautiful Typography
+                        </h1>
+                        <button id="btnPreview" class="w-full py-3 text-white font-bold text-sm rounded-xl shadow-lg transition transform hover:scale-[1.02] cursor-pointer">
+                            Interactive Button
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="h-14 border-t border-gray-950 bg-gray-950/20 px-8 flex justify-between items-center text-xs text-gray-500 font-mono shrink-0">
+        <div>© 2026 GlowGradient.</div>
+        <div class="flex items-center space-x-4">
+            <span class="text-gray-400 flex items-center gap-2 text-sm">
+  <span>☕ Support via PayPal:</span>
+  <strong class="text-cyan-400 font-mono select-all cursor-pointer hover:text-cyan-300" title="Click to select all">
+    393497238@qq.com
+  </strong>
+</span>
+            <span class="text-gray-800">|</span>
+            <span class="text-gray-600">Powered by AI</span>
+        </div>
+    </footer>
+
+    <script>
+        const color1 = document.getElementById('color1');
+        const color2 = document.getElementById('color2');
+        const angle = document.getElementById('angle');
+        const angleValue = document.getElementById('angleValue');
+        const smoothToggle = document.getElementById('smoothToggle');
+        const previewBg = document.getElementById('previewBg');
+        const textPreview = document.getElementById('textPreview');
+        const btnPreview = document.getElementById('btnPreview');
+        const codeText = document.getElementById('codeText');
+        const copyBtn = document.getElementById('copyBtn');
+        
+        const tabCss = document.getElementById('tabCss');
+        const tabTailwind = document.getElementById('tabTailwind');
+
+        let currentTab = 'css';
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) } : null;
+        }
+
+        // Fix potential bug in Tailwind calculation by ensuring standard HEX format
+        function rgbToHex(r, g, b) {
+            return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+        }
+
+        function getSmoothGradient(c1, c2, deg) {
+            const rgb1 = hexToRgb(c1);
+            const rgb2 = hexToRgb(c2);
+            
+            const midR = Math.round(Math.sqrt((rgb1.r * rgb1.r + rgb2.r * rgb2.r) / 2));
+            const midG = Math.round(Math.sqrt((rgb1.g * rgb1.g + rgb2.g * rgb2.g) / 2));
+            const midB = Math.round(Math.sqrt((rgb1.b * rgb1.b + rgb2.b * rgb2.b) / 2));
+            const midHex = rgbToHex(midR, midG, midB);
+
+            return `linear-gradient(${deg}deg, ${c1} 0%, ${midHex} 50%, ${c2} 100%)`;
+        }
+
+        function updateGradient() {
+            const c1 = color1.value;
+            const c2 = color2.value;
+            const deg = angle.value;
+            const isSmooth = smoothToggle.checked;
+
+            angleValue.textContent = `${deg}°`;
+
+            const backgroundStyle = isSmooth ? getSmoothGradient(c1, c2, deg) : `linear-gradient(${deg}deg, ${c1}, ${c2})`;
+
+            previewBg.style.background = backgroundStyle;
+            textPreview.style.background = backgroundStyle;
+            textPreview.style.webkitBackgroundClip = 'text';
+            btnPreview.style.background = backgroundStyle;
+
+            if (currentTab === 'css') {
+                codeText.textContent = isSmooth ? `background: ${backgroundStyle};` : `background: linear-gradient(${deg}deg, ${c1}, ${c2});`;
+            } else {
+                let twDirection = 'bg-gradient-to-br';
+                if (deg >= 337 || deg < 22) twDirection = 'bg-gradient-to-t';
+                else if (deg >= 22 && deg < 67) twDirection = 'bg-gradient-to-tr';
+                else if (deg >= 67 && deg < 112) twDirection = 'bg-gradient-to-r';
+                else if (deg >= 112 && deg < 157) twDirection = 'bg-gradient-to-br';
+                else if (deg >= 157 && deg < 202) twDirection = 'bg-gradient-to-b';
+                else if (deg >= 202 && deg < 247) twDirection = 'bg-gradient-to-bl';
+                else if (deg >= 247 && deg < 292) twDirection = 'bg-gradient-to-l';
+                else if (deg >= 292 && deg < 337) twDirection = 'bg-gradient-to-tl';
+
+                codeText.textContent = `className="${twDirection} from-[${c1}] to-[${c2}]"`;
+            }
+        }
+
+        [color1, color2, angle, smoothToggle].forEach(el => el.addEventListener('input', updateGradient));
+
+        tabCss.addEventListener('click', () => {
+            currentTab = 'css';
+            tabCss.className = "flex-1 py-1.5 rounded-md bg-gray-800 text-white shadow-sm transition";
+            tabTailwind.className = "flex-1 py-1.5 rounded-md text-gray-400 hover:text-white transition";
+            updateGradient();
+        });
+
+        tabTailwind.addEventListener('click', () => {
+            currentTab = 'tailwind';
+            tabTailwind.className = "flex-1 py-1.5 rounded-md bg-gray-800 text-white shadow-sm transition";
+            tabCss.className = "flex-1 py-1.5 rounded-md text-gray-400 hover:text-white transition";
+            updateGradient();
+        });
+
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(codeText.textContent).then(() => {
+                const originalText = copyBtn.innerHTML;
+                copyBtn.innerHTML = '✅ Copied to Clipboard!';
+                copyBtn.className = "w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-medium transition shadow-lg shadow-emerald-500/20 cursor-pointer";
+                
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalText;
+                    copyBtn.className = "w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-xl font-medium transition shadow-lg shadow-cyan-500/20 cursor-pointer";
+                }, 1500);
+            });
+        });
+
+        updateGradient();
+    </script>
+</body>
+</html>

@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Epoch & Unix Timestamp Converter - Convert Timestamp to Date Online</title>
+    <meta name="keywords" content="timestamp converter, unix timestamp, epoch converter, timestamp to date, date to timestamp, current epoch time, online time converter">
+    <meta name="description" content="Free and fast online Unix timestamp converter. Convert epoch timestamps to human-readable dates and vice versa. Supports both seconds and milliseconds with real-time updates.">
+    <meta name="author" content="Timestamp Tool">
+    <meta name="robots" content="index, follow">
+    
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://tools.jianbox.cn/">
+    <meta property="og:title" content="Epoch & Unix Timestamp Converter - Free Online Tool">
+    <meta property="og:description" content="Convert Unix timestamps to readable dates and vice versa instantly. Real-time local time tracking in seconds and milliseconds.">
+    <meta property="og:image" content="https://tools.jianbox.cn/og-image.png">
+
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:title" content="Epoch & Unix Timestamp Converter">
+    <meta property="twitter:description" content="Convert Unix timestamps to readable dates instantly. Supports seconds and milliseconds.">
+    <meta name="google-site-verification" content="WkrQA80HPsg7MNGApgMOcDgwFiZYEQbv4g-8BRQqoDc" />
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --success: #10b981;
+            --success-hover: #059669;
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --body-bg: #f8fafc;
+            --cyan-accent: #06b6d4;
+            --cyan-hover: #0891b2;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        /* 强制一屏显示，隐藏主滚动条 */
+        body {
+            background: var(--body-bg);
+            color: var(--text-main);
+            height: 100vh;
+            width: 100vw;
+            display: table;
+            padding: 2vh 2vw;
+            overflow: hidden;
+        }
+
+        .wrapper-cell {
+            display: table-cell;
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 30px 40px 24px 40px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            text-align: left;
+            display: inline-block;
+        }
+
+        /* Header / Real-time Display */
+        .header-section {
+            display: block;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header-table {
+            display: table;
+            width: 100%;
+        }
+
+        .title-area, .live-clock-wrapper {
+            display: table-cell;
+            vertical-align: middle;
+        }
+
+        .live-clock-wrapper {
+            text-align: right;
+            width: 300px;
+        }
+
+        .title-area h1 {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(to right, #4f46e5, #9333ea);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+
+        .title-area p {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .live-clock-card {
+            background: #f1f5f9;
+            padding: 12px 20px;
+            border-radius: 16px;
+            display: inline-block;
+            text-align: left;
+            min-width: 280px;
+        }
+
+        .live-label {
+            display: block;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .live-time {
+            display: block;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .live-ts {
+            display: block;
+            font-size: 13px;
+            font-family: monospace;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* Unit Switcher */
+        .unit-toggle-container {
+            display: block;
+            margin-bottom: 24px;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 10px;
+            width: fit-content;
+        }
+
+        .toggle-btn {
+            display: inline-block;
+            padding: 6px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: transparent;
+            color: var(--text-muted);
+        }
+
+        .toggle-btn.active {
+            background: var(--card-bg);
+            color: var(--primary);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Converter Grid Layout using Table for WeasyPrint/Legacy Support */
+        .convert-grid {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: separate;
+            border-spacing: 24px 0;
+            margin-left: -24px;
+            width: calc(100% + 48px);
+            margin-bottom: 24px;
+        }
+
+        .convert-col {
+            display: table-cell;
+            width: 50%;
+            vertical-align: top;
+        }
+
+        .convert-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 24px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .convert-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 20px -3px rgba(0, 0, 0, 0.04);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 18px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-muted);
+        }
+
+        .input-control {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 15px;
+            color: var(--text-main);
+            background: #f8fafc;
+            transition: all 0.2s ease;
+        }
+
+        .input-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: var(--card-bg);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
+        .btn-table {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: separate;
+            border-spacing: 8px 0;
+            margin-left: -8px;
+            width: calc(100% + 16px);
+            margin-bottom: 18px;
+        }
+
+        .btn-cell {
+            display: table-cell;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: var(--text-main);
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        /* Result Area */
+        .result-box {
+            padding: 14px;
+            background: #f8fafc;
+            border: 1px dashed var(--border-color);
+            border-radius: 10px;
+            min-height: 48px;
+            display: block;
+            line-height: 20px;
+            font-family: monospace;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-main);
+            word-break: break-all;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .result-box:hover::after {
+            content: 'Click to copy';
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-family: system-ui;
+            font-size: 11px;
+            color: var(--primary);
+            background: rgba(79, 70, 229, 0.08);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        /* Support / Footer Area */
+        .footer-section {
+            width: 100%;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        /* Requested Custom Support Classes */
+        .text-cyan-400 {
+            color: var(--cyan-accent);
+        }
+        .font-mono {
+            font-family: monospace;
+        }
+        .select-all {
+            user-select: all;
+            -webkit-user-select: all;
+        }
+        .cursor-pointer {
+            cursor: pointer;
+        }
+        .hover\:text-cyan-300:hover {
+            color: var(--cyan-hover);
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #0f172a;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            opacity: 0;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* Mobile Adjustments (only triggers if screen height or width is small) */
+        @media (max-width: 768px) {
+            body {
+                overflow: auto;
+                height: auto;
+            }
+            .header-table, .convert-grid, .btn-table {
+                display: block;
+                width: 100%;
+                margin-left: 0;
+            }
+            .title-area, .live-clock-wrapper, .convert-col, .btn-cell {
+                display: block;
+                width: 100%;
+            }
+            .live-clock-wrapper {
+                text-align: left;
+                margin-top: 12px;
+            }
+            .convert-col {
+                margin-bottom: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="wrapper-cell">
+        <div class="container">
+            <header class="header-section">
+                <div class="header-table">
+                    <div class="title-area">
+                        <h1>Epoch Converter</h1>
+                        <p>Universal Unix timestamp conversion tool</p>
+                    </div>
+                    <div class="live-clock-wrapper">
+                        <div class="live-clock-card">
+                            <span class="live-label">● Live Local Time</span>
+                            <span class="live-time" id="realTime">Loading...</span>
+                            <span class="live-ts" id="realTimestamp">-</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="unit-toggle-container">
+                <button class="toggle-btn active" id="btnSeconds">Seconds (s)</button>
+                <button class="toggle-btn" id="btnMilliseconds">Milliseconds (ms)</button>
+            </div>
+
+            <main class="convert-grid">
+                
+                <div class="convert-col">
+                    <section class="convert-card">
+                        <h2 class="card-title">Date to Timestamp</h2>
+                        <div class="form-group">
+                            <label for="datetimeInput">Local Date & Time</label>
+                            <input type="datetime-local" id="datetimeInput" class="input-control">
+                        </div>
+                        <div class="btn-table">
+                            <div class="btn-cell"><button class="btn btn-secondary" id="btnDateNow">Current Time</button></div>
+                            <div class="btn-cell"><button class="btn btn-primary" id="btnToTimestamp">Convert</button></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Output Timestamp</label>
+                            <div class="result-box" id="timestampResult" title="Click to copy"></div>
+                        </div>
+                    </section>
+                </div>
+
+                <div class="convert-col">
+                    <section class="convert-card">
+                        <h2 class="card-title">Timestamp to Date</h2>
+                        <div class="form-group">
+                            <label for="timestampInput">Unix Timestamp</label>
+                            <input type="number" id="timestampInput" class="input-control" placeholder="e.g. 1717752000">
+                        </div>
+                        <div class="btn-table">
+                            <div class="btn-cell"><button class="btn btn-secondary" id="btnTsNow">Current TS</button></div>
+                            <div class="btn-cell"><button class="btn btn-primary" id="btnToDate">Convert</button></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Output Local Date Time</label>
+                            <div class="result-box" id="dateResult" title="Click to copy"></div>
+                        </div>
+                    </section>
+                </div>
+
+            </main>
+
+            <footer class="footer-section">
+                <span>☕ Support via PayPal:</span>
+                <strong class="text-cyan-400 font-mono select-all cursor-pointer hover:text-cyan-300" title="Click to select all">393497238@qq.com</strong>
+            </footer>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">Copied to clipboard!</div>
+
+    <script>
+        let timeUnit = 'seconds'; 
+
+        // DOM Elements
+        const realTimeEl = document.getElementById('realTime');
+        const realTimestampEl = document.getElementById('realTimestamp');
+        const btnSeconds = document.getElementById('btnSeconds');
+        const btnMilliseconds = document.getElementById('btnMilliseconds');
+        
+        const datetimeInput = document.getElementById('datetimeInput');
+        const timestampResult = document.getElementById('timestampResult');
+        const btnDateNow = document.getElementById('btnDateNow');
+        const btnToTimestamp = document.getElementById('btnToTimestamp');
+
+        const timestampInput = document.getElementById('timestampInput');
+        const dateResult = document.getElementById('dateResult');
+        const btnTsNow = document.getElementById('btnTsNow');
+        const btnToDate = document.getElementById('btnToDate');
+        const toast = document.getElementById('toast');
+
+        // Helpers
+        const getNowTimestamp = () => {
+            return timeUnit === 'seconds' ? Math.floor(Date.now() / 1000) : Date.now();
+        };
+
+        const getLocalISOString = (date = new Date()) => {
+            try {
+                const pad = (num) => String(num).padStart(2, '0');
+                return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+            } catch (e) {
+                return "";
+            }
+        };
+
+        const showToast = (msg) => {
+            if(!toast) return;
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        };
+
+        // Clipboard Copy with fallback
+        const setupClipboard = (el) => {
+            if(!el) return;
+            el.addEventListener('click', () => {
+                if (!el.textContent || el.textContent.includes('Please') || el.textContent.includes('Invalid')) return;
+                
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(el.textContent)
+                        .then(() => showToast('Copied to clipboard!'))
+                        .catch(() => showToast('Failed to copy'));
+                } else {
+                    const textarea = document.createElement('textarea');
+                    textarea.value = el.textContent;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    try {
+                        document.execCommand('copy');
+                        showToast('Copied to clipboard!');
+                    } catch (err) {
+                        showToast('Copy not supported');
+                    }
+                    document.body.removeChild(textarea);
+                }
+            });
+        };
+
+        // Real-time Clock
+        const updateClock = () => {
+            try {
+                const now = new Date();
+                if(realTimeEl) realTimeEl.textContent = now.toString().split(' GMT')[0]; 
+                if(realTimestampEl) realTimestampEl.textContent = `${getNowTimestamp()} ${timeUnit === 'seconds' ? 's' : 'ms'}`;
+            } catch(e) {
+                console.error(e);
+            }
+        };
+
+        // Convert Date to TS
+        const doConvertDateToTs = () => {
+            if(!datetimeInput || !timestampResult) return;
+            const val = datetimeInput.value;
+            if (!val) {
+                timestampResult.textContent = 'Please select a valid date';
+                return;
+            }
+            const ms = new Date(val).getTime();
+            timestampResult.textContent = timeUnit === 'seconds' ? Math.floor(ms / 1000) : ms;
+        };
+
+        // Convert TS to Date
+        const doConvertTsToDate = () => {
+            if(!timestampInput || !dateResult) return;
+            const val = timestampInput.value.trim();
+            if (!val) {
+                dateResult.textContent = 'Please enter a timestamp';
+                return;
+            }
+            
+            let ts = parseInt(val, 10);
+            if (isNaN(ts)) {
+                dateResult.textContent = 'Invalid format';
+                return;
+            }
+
+            if (timeUnit === 'seconds' && ts > 50000000000) {
+                ts = Math.floor(ts / 1000);
+            } else if (timeUnit === 'milliseconds' && ts < 50000000000) {
+                ts = ts * 1000;
+            }
+
+            const date = new Date(timeUnit === 'seconds' ? ts * 1000 : ts);
+            if (date.toString() === 'Invalid Date') {
+                dateResult.textContent = 'Invalid Timestamp';
+            } else {
+                dateResult.textContent = date.toString().split(' GMT')[0];
+            }
+        };
+
+        // Event Bindings
+        if(btnSeconds) {
+            btnSeconds.onclick = () => {
+                if (timeUnit === 'seconds') return;
+                timeUnit = 'seconds';
+                btnSeconds.classList.add('active');
+                if(btnMilliseconds) btnMilliseconds.classList.remove('active');
+                if(timestampInput) timestampInput.placeholder = 'e.g. 1717752000';
+                updateClock();
+                doConvertDateToTs();
+                doConvertTsToDate();
+            };
+        }
+
+        if(btnMilliseconds) {
+            btnMilliseconds.onclick = () => {
+                if (timeUnit === 'milliseconds') return;
+                timeUnit = 'milliseconds';
+                btnMilliseconds.classList.add('active');
+                if(btnSeconds) btnSeconds.classList.remove('active');
+                if(timestampInput) timestampInput.placeholder = 'e.g. 1717752000000';
+                updateClock();
+                doConvertDateToTs();
+                doConvertTsToDate();
+            };
+        }
+
+        if(btnDateNow) {
+            btnDateNow.onclick = () => {
+                if(datetimeInput) datetimeInput.value = getLocalISOString();
+                doConvertDateToTs();
+            };
+        }
+
+        if(btnTsNow) {
+            btnTsNow.onclick = () => {
+                if(timestampInput) timestampInput.value = getNowTimestamp();
+                doConvertTsToDate();
+            };
+        }
+
+        if(btnToTimestamp) btnToTimestamp.onclick = doConvertDateToTs;
+        if(btnToDate) btnToDate.onclick = doConvertTsToDate;
+
+        // Initialization
+        window.onload = () => {
+            updateClock();
+            setInterval(updateClock, 1000);
+            
+            if(datetimeInput) datetimeInput.value = getLocalISOString();
+            if(timestampInput) timestampInput.value = getNowTimestamp();
+            
+            doConvertDateToTs();
+            doConvertTsToDate();
+
+            setupClipboard(timestampResult);
+            setupClipboard(dateResult);
+        };
+    </script>
+</body>
+</html>
