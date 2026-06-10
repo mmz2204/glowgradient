@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UUID Generator — Eric's Tools</title>
+  <meta name="description" content="Generate v4 UUIDs in bulk. One click to copy.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23080c14'/><text x='16' y='22' text-anchor='middle' font-size='16' font-family='system-ui,sans-serif' font-weight='900' fill='%2322d3ee'>I</text></svg>">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    body{background:#080c14;color:#f3f4f6}
+    .glass{background:rgba(15,23,42,0.4);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.03)}
+    .btn-cyan{background:rgba(34,211,238,0.15);color:#22d3ee;border:1px solid rgba(34,211,238,0.3);cursor:pointer;transition:all 0.2s}
+    .btn-cyan:hover{background:rgba(34,211,238,0.25)}
+    .uuid-row{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(15,23,42,0.3);border-radius:10px;margin-bottom:4px;font-family:monospace;font-size:13px}
+    .uuid-row:hover{background:rgba(15,23,42,0.5)}
+    .uuid-text{flex:1;color:#e2e8f0;letter-spacing:0.02em}
+    .copy-btn{color:#22d3ee;font-size:11px;cursor:pointer;background:none;border:none;font-family:monospace}
+    .copy-btn:hover{color:#67e8f9}
+  </style>
+</head>
+<body class="min-h-screen w-screen flex flex-col items-center p-6 md:p-12">
+
+  <header class="w-full max-w-2xl mb-8">
+    <a href="index.html" class="text-xs font-mono text-cyan-400 hover:text-cyan-300">← Back to Eric's Tools</a>
+    <h1 class="text-3xl md:text-4xl font-black mt-4 tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-500 bg-clip-text text-transparent">UUID Generator</h1>
+    <p class="text-gray-400 text-sm mt-2">Generate v4 UUIDs. Fully local — computed in your browser.</p>
+  </header>
+
+  <main class="w-full max-w-2xl space-y-6">
+
+    <div class="glass rounded-2xl p-6 space-y-4">
+      <div class="flex items-center gap-4 flex-wrap">
+        <label class="text-sm font-mono text-gray-400">Generate</label>
+        <input id="count" type="number" min="1" max="100" value="5" class="w-20 p-2 rounded-lg text-center text-sm" style="background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.07);color:#f3f4f6;font-family:monospace">
+        <span class="text-sm font-mono text-gray-400">UUIDs</span>
+        <button class="btn-cyan px-5 py-2 rounded-lg text-sm font-mono" onclick="generate()">Generate</button>
+      </div>
+
+      <div class="flex gap-3">
+        <button class="btn-cyan px-4 py-1.5 rounded-lg text-xs font-mono" onclick="generateUppercase()">Uppercase</button>
+        <button class="btn-cyan px-4 py-1.5 rounded-lg text-xs font-mono" onclick="generateLowercase()">Lowercase</button>
+        <button class="btn-cyan px-4 py-1.5 rounded-lg text-xs font-mono" onclick="generateNoDashes()">No Dashes</button>
+      </div>
+
+      <div class="flex gap-3">
+        <button class="text-xs font-mono text-cyan-400 hover:text-cyan-300" onclick="copyAll()">Copy All</button>
+        <button class="text-xs font-mono text-gray-500 hover:text-gray-400" onclick="clearAll()">Clear</button>
+      </div>
+    </div>
+
+    <div id="uuid-list" class="space-y-1"></div>
+
+  </main>
+
+  <script>
+    function uuidV4() {
+      return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0;
+        return (c === "x" ? r : (r & 0x3 | 0x8)).toString(16);
+      });
+    }
+
+    let uuids = [];
+
+    function generate() {
+      const n = Math.min(Math.max(parseInt(document.getElementById("count").value) || 5, 1), 100);
+      uuids = Array.from({length: n}, () => uuidV4());
+      render();
+    }
+    function generateUppercase() { uuids = uuids.map(u => u.toUpperCase()); render(); }
+    function generateLowercase() { uuids = uuids.map(u => u.toLowerCase()); render(); }
+    function generateNoDashes() { uuids = uuids.map(u => u.replace(/-/g, "")); render(); }
+    function clearAll() { uuids = []; render(); }
+
+    function render() {
+      const el = document.getElementById("uuid-list");
+      if (uuids.length === 0) { el.innerHTML = '<p class="text-gray-600 text-sm font-mono text-center py-12">Click Generate to create UUIDs</p>'; return; }
+      el.innerHTML = uuids.map((u, i) => `
+        <div class="uuid-row">
+          <span class="text-gray-600 text-xs w-6">${i+1}</span>
+          <span class="uuid-text">${u}</span>
+          <button class="copy-btn" onclick="copyOne('${u}', this)">Copy</button>
+        </div>
+      `).join("");
+    }
+
+    function copyOne(uuid, btn) {
+      navigator.clipboard.writeText(uuid).then(() => {
+        btn.textContent = "✓"; setTimeout(() => btn.textContent = "Copy", 1500);
+      });
+    }
+    function copyAll() {
+      navigator.clipboard.writeText(uuids.join("\n")).then(() => {
+        const b = event.target; b.textContent = "Copied " + uuids.length + "!"; setTimeout(() => b.textContent = "Copy All", 1500);
+      });
+    }
+
+    generate();
+  </script>
+</body>
+</html>

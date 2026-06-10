@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unit Converter — Eric's Tools</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23080c14'/><text x='16' y='23' text-anchor='middle' font-family='system-ui,sans-serif' font-weight='700' font-size='18' fill='%2322d3ee'>U</text></svg>">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: #080c14;
+    color: #f3f4f6;
+    min-height: 100vh;
+  }
+
+  .bg-grid {
+    background-image:
+      linear-gradient(rgba(34,211,238,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(34,211,238,0.02) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  .glass {
+    background: rgba(15,23,42,0.4);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.03);
+    border-radius: 16px;
+  }
+
+  .glass-light {
+    background: rgba(15,23,42,0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px;
+  }
+
+  .tab-active {
+    background: rgba(34,211,238,0.12);
+    color: #22d3ee;
+    border-bottom: 2px solid #22d3ee;
+  }
+
+  .tab-inactive {
+    background: transparent;
+    color: #9ca3af;
+    border-bottom: 2px solid transparent;
+  }
+
+  input[type="number"] {
+    background: rgba(15,23,42,0.8);
+    border: 1px solid rgba(255,255,255,0.06);
+    color: #f3f4f6;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 1.25rem;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input[type="number"]:focus {
+    border-color: rgba(34,211,238,0.5);
+    box-shadow: 0 0 0 3px rgba(34,211,238,0.1);
+  }
+
+  select {
+    background: rgba(15,23,42,0.8);
+    border: 1px solid rgba(255,255,255,0.06);
+    color: #f3f4f6;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 1rem;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 8L1 3h10z' fill='%2322d3ee'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+    transition: border-color 0.2s;
+  }
+
+  select:focus {
+    border-color: rgba(34,211,238,0.5);
+  }
+
+  .swap-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(34,211,238,0.1);
+    border: 1px solid rgba(34,211,238,0.2);
+    color: #22d3ee;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .swap-btn:hover {
+    background: rgba(34,211,238,0.2);
+    border-color: rgba(34,211,238,0.4);
+    transform: rotate(180deg);
+  }
+
+  .swap-btn svg {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.3s;
+  }
+
+  .result-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #22d3ee;
+    word-break: break-all;
+  }
+
+  .result-card {
+    background: rgba(15,23,42,0.5);
+    border: 1px solid rgba(255,255,255,0.03);
+    border-radius: 12px;
+    padding: 16px;
+    transition: all 0.2s;
+    cursor: default;
+  }
+
+  .result-card:hover {
+    background: rgba(15,23,42,0.8);
+    border-color: rgba(34,211,238,0.15);
+    transform: translateY(-1px);
+  }
+
+  .result-card.active-card {
+    background: rgba(34,211,238,0.08);
+    border-color: rgba(34,211,238,0.3);
+  }
+
+  .result-card .unit-label {
+    color: #9ca3af;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .result-card .unit-value {
+    color: #f3f4f6;
+    font-size: 1.125rem;
+    font-weight: 500;
+    word-break: break-all;
+  }
+
+  .back-link {
+    color: #9ca3af;
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: color 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .back-link:hover { color: #22d3ee; }
+
+  .back-link svg { width: 16px; height: 16px; }
+
+  @media (max-width: 640px) {
+    .result-value { font-size: 1.25rem; }
+    .result-card { padding: 12px; }
+    .result-card .unit-value { font-size: 1rem; }
+  }
+</style>
+</head>
+<body class="bg-grid">
+
+<header class="glass max-w-6xl mx-4 sm:mx-6 lg:mx-auto mt-4 p-5">
+  <a href="index.html" class="back-link mb-3">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    Back to Eric's Tools
+  </a>
+  <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Unit Converter</h1>
+  <p class="text-gray-400 text-sm mt-1">Convert between units across multiple categories</p>
+</header>
+
+<main class="max-w-6xl mx-4 sm:mx-6 lg:mx-auto mt-6 mb-12">
+
+  <!-- Category Tabs -->
+  <div class="glass p-1.5 flex flex-wrap gap-1">
+    <button class="category-tab tab-active px-4 py-2 text-sm font-medium rounded-lg transition-colors" data-category="length">Length</button>
+    <button class="category-tab tab-inactive px-4 py-2 text-sm font-medium rounded-lg transition-colors" data-category="area">Area</button>
+    <button class="category-tab tab-inactive px-4 py-2 text-sm font-medium rounded-lg transition-colors" data-category="weight">Weight</button>
+    <button class="category-tab tab-inactive px-4 py-2 text-sm font-medium rounded-lg transition-colors" data-category="temperature">Temperature</button>
+    <button class="category-tab tab-inactive px-4 py-2 text-sm font-medium rounded-lg transition-colors" data-category="digital">Digital Storage</button>
+    <button class="category-tab tab-inactive px-4 py-2 text-sm font-medium rounded-lg transition-colors" data-category="speed">Speed</button>
+    <button class="category-tab tab-inactive px-4 py-2 text-sm font-medium rounded-lg transition-colors" data-category="time">Time</button>
+  </div>
+
+  <!-- Converter Card -->
+  <div class="glass mt-6 p-6 sm:p-8">
+    <!-- From Row -->
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-end gap-3 mb-4">
+      <div class="flex-1">
+        <label class="block text-xs text-gray-500 uppercase tracking-wider mb-1.5">From</label>
+        <input type="number" id="input-value" placeholder="Enter value" value="1" step="any">
+      </div>
+      <select id="from-unit"></select>
+    </div>
+
+    <!-- Swap Button -->
+    <div class="flex justify-center my-2">
+      <button id="swap-btn" class="swap-btn" title="Swap units">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <polyline points="19 12 12 19 5 12"></polyline>
+        </svg>
+      </button>
+    </div>
+
+    <!-- To Row -->
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-end gap-3 mt-4">
+      <div class="flex-1">
+        <label class="block text-xs text-gray-500 uppercase tracking-wider mb-1.5">To</label>
+        <div class="result-value bg-[rgba(15,23,42,0.8)] border border-[rgba(255,255,255,0.06)] rounded-xl px-5 py-3 min-h-[52px] flex items-center" id="result-display">1</div>
+      </div>
+      <select id="to-unit"></select>
+    </div>
+  </div>
+
+  <!-- All Results Grid -->
+  <div class="glass mt-6 p-6 sm:p-8">
+    <h2 class="text-sm text-gray-500 uppercase tracking-wider mb-4">All Conversions</h2>
+    <div id="results-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"></div>
+  </div>
+
+</main>
+
+<script>
+(function() {
+  // ===== DATA =====
+  const categories = {
+    length: {
+      name: 'Length',
+      units: [
+        { key: 'mm', name: 'Millimeter', symbol: 'mm', factor: 0.001 },
+        { key: 'cm', name: 'Centimeter', symbol: 'cm', factor: 0.01 },
+        { key: 'm',  name: 'Meter',      symbol: 'm',  factor: 1 },
+        { key: 'km', name: 'Kilometer',  symbol: 'km', factor: 1000 },
+        { key: 'in', name: 'Inch',       symbol: 'in', factor: 0.0254 },
+        { key: 'ft', name: 'Foot',       symbol: 'ft', factor: 0.3048 },
+        { key: 'yd', name: 'Yard',       symbol: 'yd', factor: 0.9144 },
+        { key: 'mi', name: 'Mile',       symbol: 'mi', factor: 1609.344 },
+      ]
+    },
+    area: {
+      name: 'Area',
+      units: [
+        { key: 'mm2', name: 'Square Millimeter', symbol: 'mm²', factor: 1e-6 },
+        { key: 'cm2', name: 'Square Centimeter', symbol: 'cm²', factor: 0.0001 },
+        { key: 'm2',  name: 'Square Meter',      symbol: 'm²',  factor: 1 },
+        { key: 'km2', name: 'Square Kilometer',  symbol: 'km²', factor: 1e6 },
+        { key: 'ha',  name: 'Hectare',           symbol: 'ha',  factor: 10000 },
+        { key: 'ac',  name: 'Acre',              symbol: 'ac',  factor: 4046.8564224 },
+        { key: 'ft2', name: 'Square Foot',       symbol: 'ft²', factor: 0.09290304 },
+      ]
+    },
+    weight: {
+      name: 'Weight',
+      units: [
+        { key: 'mg', name: 'Milligram', symbol: 'mg',  factor: 1e-6 },
+        { key: 'g',  name: 'Gram',      symbol: 'g',   factor: 0.001 },
+        { key: 'kg', name: 'Kilogram',  symbol: 'kg',  factor: 1 },
+        { key: 't',  name: 'Ton',       symbol: 't',   factor: 1000 },
+        { key: 'oz', name: 'Ounce',     symbol: 'oz',  factor: 0.028349523125 },
+        { key: 'lb', name: 'Pound',     symbol: 'lb',  factor: 0.45359237 },
+      ]
+    },
+    temperature: {
+      name: 'Temperature',
+      units: [
+        { key: 'c', name: 'Celsius',    symbol: '°C' },
+        { key: 'f', name: 'Fahrenheit', symbol: '°F' },
+        { key: 'k', name: 'Kelvin',     symbol: 'K' },
+      ],
+      // temperature uses special conversion functions, not simple factors
+      special: true,
+    },
+    digital: {
+      name: 'Digital Storage',
+      units: [
+        { key: 'B',  name: 'Byte',     symbol: 'B',  factor: 1 },
+        { key: 'KB', name: 'Kilobyte', symbol: 'KB', factor: 1024 },
+        { key: 'MB', name: 'Megabyte', symbol: 'MB', factor: 1024 * 1024 },
+        { key: 'GB', name: 'Gigabyte', symbol: 'GB', factor: 1024 * 1024 * 1024 },
+        { key: 'TB', name: 'Terabyte', symbol: 'TB', factor: 1024 * 1024 * 1024 * 1024 },
+        { key: 'PB', name: 'Petabyte', symbol: 'PB', factor: 1024 * 1024 * 1024 * 1024 * 1024 },
+      ]
+    },
+    speed: {
+      name: 'Speed',
+      units: [
+        { key: 'ms',  name: 'Meter per second',  symbol: 'm/s',  factor: 1 },
+        { key: 'kmh', name: 'Kilometer per hour', symbol: 'km/h', factor: 0.2777777777777778 },
+        { key: 'mph', name: 'Mile per hour',      symbol: 'mph',  factor: 0.44704 },
+        { key: 'kn',  name: 'Knot',               symbol: 'kn',   factor: 0.5144444444444444 },
+      ]
+    },
+    time: {
+      name: 'Time',
+      units: [
+        { key: 'ms',  name: 'Millisecond', symbol: 'ms',   factor: 0.001 },
+        { key: 's',   name: 'Second',      symbol: 'sec',  factor: 1 },
+        { key: 'min', name: 'Minute',      symbol: 'min',  factor: 60 },
+        { key: 'h',   name: 'Hour',        symbol: 'hour', factor: 3600 },
+        { key: 'd',   name: 'Day',         symbol: 'day',  factor: 86400 },
+        { key: 'w',   name: 'Week',        symbol: 'wk',   factor: 604800 },
+        { key: 'y',   name: 'Year',        symbol: 'yr',   factor: 31557600 },
+      ]
+    },
+  };
+
+  // ===== STATE =====
+  let currentCategory = 'length';
+  let state = {};
+  // each state[category] has { fromUnit, toUnit }
+
+  // ===== TEMPERATURE HELPERS =====
+  function toCelsius(value, unit) {
+    switch(unit) {
+      case 'c': return value;
+      case 'f': return (value - 32) * 5 / 9;
+      case 'k': return value - 273.15;
+      default: return value;
+    }
+  }
+
+  function fromCelsius(celsius, unit) {
+    switch(unit) {
+      case 'c': return celsius;
+      case 'f': return celsius * 9 / 5 + 32;
+      case 'k': return celsius + 273.15;
+      default: return celsius;
+    }
+  }
+
+  // ===== CONVERSION =====
+  function convert(value, fromUnit, toUnit, category) {
+    if (value === '' || value === null || value === undefined) return 0;
+    const num = parseFloat(value);
+    if (isNaN(num)) return 0;
+
+    if (category === 'temperature') {
+      const celsius = toCelsius(num, fromUnit);
+      return fromCelsius(celsius, toUnit);
+    }
+
+    const cat = categories[category];
+    const fromUnitObj = cat.units.find(u => u.key === fromUnit);
+    const toUnitObj = cat.units.find(u => u.key === toUnit);
+    if (!fromUnitObj || !toUnitObj) return 0;
+
+    const baseValue = num * fromUnitObj.factor;
+    return baseValue / toUnitObj.factor;
+  }
+
+  function formatResult(val) {
+    if (val === 0) return '0';
+    // Handle very small or very large numbers
+    if (Math.abs(val) < 1e-15) return '0';
+    if (Math.abs(val) >= 1e15) return val.toExponential(10);
+
+    // For numbers between 1e-10 and 1e15, use fixed precision
+    const absVal = Math.abs(val);
+    if (absVal < 0.000001) return val.toExponential(6);
+    if (absVal < 0.001) return val.toFixed(10).replace(/0+$/, '').replace(/\.$/, '');
+    if (absVal < 1) return val.toFixed(8).replace(/0+$/, '').replace(/\.$/, '');
+    if (absVal < 1000) return val.toFixed(6).replace(/0+$/, '').replace(/\.$/, '');
+    if (absVal < 1000000) return val.toFixed(4).replace(/0+$/, '').replace(/\.$/, '');
+    return val.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+  }
+
+  // ===== DOM REFS =====
+  const inputValue = document.getElementById('input-value');
+  const fromSelect = document.getElementById('from-unit');
+  const toSelect = document.getElementById('to-unit');
+  const resultDisplay = document.getElementById('result-display');
+  const resultsGrid = document.getElementById('results-grid');
+  const swapBtn = document.getElementById('swap-btn');
+  const tabButtons = document.querySelectorAll('.category-tab');
+
+  // ===== INIT STATE =====
+  Object.keys(categories).forEach(cat => {
+    const units = categories[cat].units;
+    state[cat] = { fromUnit: units[0].key, toUnit: units[1].key };
+  });
+
+  // ===== POPULATE UNIT SELECTS =====
+  function populateUnitSelects(category) {
+    const cat = categories[category];
+    const units = cat.units;
+
+    fromSelect.innerHTML = '';
+    toSelect.innerHTML = '';
+
+    units.forEach(u => {
+      const optFrom = document.createElement('option');
+      optFrom.value = u.key;
+      optFrom.textContent = u.symbol;
+      if (u.key === state[category].fromUnit) optFrom.selected = true;
+      fromSelect.appendChild(optFrom);
+
+      const optTo = document.createElement('option');
+      optTo.value = u.key;
+      optTo.textContent = u.symbol;
+      if (u.key === state[category].toUnit) optTo.selected = true;
+      toSelect.appendChild(optTo);
+    });
+  }
+
+  // ===== UPDATE UI =====
+  function updateUI() {
+    const s = state[currentCategory];
+    const value = inputValue.value;
+    const result = convert(value, s.fromUnit, s.toUnit, currentCategory);
+    const cat = categories[currentCategory];
+
+    resultDisplay.textContent = formatResult(result);
+
+    // Build results grid
+    const units = cat.units;
+    resultsGrid.innerHTML = '';
+
+    units.forEach(u => {
+      const fromValue = convert(value, s.fromUnit, u.key, currentCategory);
+      const isActive = u.key === s.toUnit;
+
+      const card = document.createElement('div');
+      card.className = 'result-card' + (isActive ? ' active-card' : '');
+      card.innerHTML = `
+        <div class="unit-label">${u.symbol} — ${u.name}</div>
+        <div class="unit-value mt-1">${formatResult(fromValue)}</div>
+      `;
+      resultsGrid.appendChild(card);
+    });
+  }
+
+  // ===== SWITCH CATEGORY =====
+  function switchCategory(category) {
+    currentCategory = category;
+
+    // Update tabs
+    tabButtons.forEach(btn => {
+      if (btn.dataset.category === category) {
+        btn.className = 'category-tab tab-active px-4 py-2 text-sm font-medium rounded-lg transition-colors';
+      } else {
+        btn.className = 'category-tab tab-inactive px-4 py-2 text-sm font-medium rounded-lg transition-colors';
+      }
+    });
+
+    populateUnitSelects(category);
+    updateUI();
+  }
+
+  // ===== SWAP UNITS =====
+  function swapUnits() {
+    const s = state[currentCategory];
+    const tmp = s.fromUnit;
+    s.fromUnit = s.toUnit;
+    s.toUnit = tmp;
+
+    // Update selects
+    fromSelect.value = s.fromUnit;
+    toSelect.value = s.toUnit;
+    updateUI();
+  }
+
+  // ===== EVENT LISTENERS =====
+  inputValue.addEventListener('input', updateUI);
+
+  fromSelect.addEventListener('change', function() {
+    state[currentCategory].fromUnit = this.value;
+    updateUI();
+  });
+
+  toSelect.addEventListener('change', function() {
+    state[currentCategory].toUnit = this.value;
+    updateUI();
+  });
+
+  swapBtn.addEventListener('click', swapUnits);
+
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', function() {
+      switchCategory(this.dataset.category);
+    });
+  });
+
+  // ===== INIT =====
+  populateUnitSelects(currentCategory);
+  updateUI();
+})();
+</script>
+
+</body>
+</html>

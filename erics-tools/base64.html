@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Base64 Tool — Eric's Tools</title>
+  <meta name="description" content="Encode and decode Base64 text and files. Fully local, no upload.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23080c14'/><text x='16' y='22' text-anchor='middle' font-size='16' font-family='system-ui,sans-serif' font-weight='900' fill='%2322d3ee'>B</text></svg>">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    body{background:#080c14;color:#f3f4f6}
+    .glass{background:rgba(15,23,42,0.4);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.03)}
+    textarea{background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.07);color:#f3f4f6;font-family:monospace}
+    textarea:focus{outline:none;border-color:rgba(34,211,238,0.4);box-shadow:0 0 0 3px rgba(34,211,238,0.08)}
+    .btn{transition:all 0.2s;cursor:pointer}
+    .btn:hover{background:rgba(34,211,238,0.1)}
+    .btn-cyan{background:rgba(34,211,238,0.15);color:#22d3ee;border:1px solid rgba(34,211,238,0.3)}
+    .btn-cyan:hover{background:rgba(34,211,238,0.25)}
+    #drop-zone.drag-over{border-color:#22d3ee;background:rgba(34,211,238,0.05)}
+  </style>
+</head>
+<body class="min-h-screen w-screen flex flex-col items-center p-6 md:p-12">
+
+  <header class="w-full max-w-2xl mb-8">
+    <a href="index.html" class="text-xs font-mono text-cyan-400 hover:text-cyan-300 transition-colors">← Back to Eric's Tools</a>
+    <h1 class="text-3xl md:text-4xl font-black mt-4 tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-500 bg-clip-text text-transparent">Base64 Tool</h1>
+    <p class="text-gray-400 text-sm mt-2">Encode and decode Base64. Fully local — nothing leaves your browser.</p>
+  </header>
+
+  <main class="w-full max-w-2xl space-y-6">
+
+    <!-- Tab toggle -->
+    <div class="flex gap-2">
+      <button id="tab-text" class="btn btn-cyan px-4 py-2 rounded-lg text-sm font-mono" onclick="switchTab('text')">Text</button>
+      <button id="tab-file" class="btn px-4 py-2 rounded-lg text-sm font-mono text-gray-400 border border-gray-800 hover:border-gray-600" onclick="switchTab('file')">File to Data URI</button>
+    </div>
+
+    <!-- Text panel -->
+    <div id="panel-text" class="space-y-4">
+      <div>
+        <label class="block text-xs font-mono text-gray-400 mb-1">Input</label>
+        <textarea id="input" rows="5" class="w-full p-4 rounded-xl text-sm resize-y" placeholder="Paste text or Base64 string..."></textarea>
+      </div>
+      <div class="flex gap-3">
+        <button class="btn btn-cyan px-5 py-2 rounded-lg text-sm font-mono" onclick="encode()">Encode →</button>
+        <button class="btn btn-cyan px-5 py-2 rounded-lg text-sm font-mono" onclick="decode()">← Decode</button>
+        <button class="btn px-4 py-2 rounded-lg text-sm font-mono text-gray-400 border border-gray-800 hover:border-gray-600 ml-auto" onclick="swap()">⇅ Swap</button>
+      </div>
+      <div>
+        <div class="flex justify-between items-center mb-1">
+          <label class="text-xs font-mono text-gray-400">Output</label>
+          <button class="text-xs font-mono text-cyan-400 hover:text-cyan-300" onclick="copyOutput()">Copy</button>
+        </div>
+        <textarea id="output" rows="5" class="w-full p-4 rounded-xl text-sm resize-y" readonly placeholder="Result..."></textarea>
+      </div>
+      <p id="error" class="text-xs text-red-400 font-mono hidden"></p>
+    </div>
+
+    <!-- File panel -->
+    <div id="panel-file" class="space-y-4 hidden">
+      <div id="drop-zone" class="glass rounded-2xl p-10 text-center border-dashed cursor-pointer transition-colors">
+        <p class="text-gray-400 text-sm font-mono">Drop a file here, or click to select</p>
+        <p class="text-gray-600 text-xs mt-1">Any file type — image, PDF, text, etc.</p>
+        <input type="file" id="file-input" class="hidden">
+      </div>
+      <div id="file-info" class="hidden glass rounded-xl p-4">
+        <p class="text-sm font-mono"><span id="file-name" class="text-cyan-400"></span> <span id="file-size" class="text-gray-500"></span></p>
+      </div>
+      <textarea id="data-uri-output" rows="6" class="w-full p-4 rounded-xl text-xs resize-y" readonly placeholder="Data URI will appear here..."></textarea>
+      <button id="copy-uri" class="btn btn-cyan px-5 py-2 rounded-lg text-sm font-mono hidden" onclick="copyDataURI()">Copy Data URI</button>
+    </div>
+
+  </main>
+
+  <script>
+    const dropZone = document.getElementById("drop-zone");
+    const fileInput = document.getElementById("file-input");
+    const fileInfo = document.getElementById("file-info");
+    const fileName = document.getElementById("file-name");
+    const fileSize = document.getElementById("file-size");
+    const dataUriOut = document.getElementById("data-uri-output");
+    const copyUriBtn = document.getElementById("copy-uri");
+    const errorEl = document.getElementById("error");
+    const inputEl = document.getElementById("input");
+    const outputEl = document.getElementById("output");
+
+    function switchTab(tab) {
+      document.getElementById("tab-text").className = tab==="text" ? "btn btn-cyan px-4 py-2 rounded-lg text-sm font-mono" : "btn px-4 py-2 rounded-lg text-sm font-mono text-gray-400 border border-gray-800 hover:border-gray-600";
+      document.getElementById("tab-file").className = tab==="file" ? "btn btn-cyan px-4 py-2 rounded-lg text-sm font-mono" : "btn px-4 py-2 rounded-lg text-sm font-mono text-gray-400 border border-gray-800 hover:border-gray-600";
+      document.getElementById("panel-text").classList.toggle("hidden", tab!=="text");
+      document.getElementById("panel-file").classList.toggle("hidden", tab!=="file");
+    }
+
+    function encode() {
+      errorEl.classList.add("hidden");
+      try { outputEl.value = btoa(unescape(encodeURIComponent(inputEl.value))); }
+      catch(e) { errorEl.textContent = "Error: " + e.message; errorEl.classList.remove("hidden"); }
+    }
+    function decode() {
+      errorEl.classList.add("hidden");
+      try { outputEl.value = decodeURIComponent(escape(atob(inputEl.value.trim()))); }
+      catch(e) { errorEl.textContent = "Error: invalid Base64 string"; errorEl.classList.remove("hidden"); }
+    }
+    function swap() { const t = inputEl.value; inputEl.value = outputEl.value; outputEl.value = t; }
+    function copyOutput() {
+      navigator.clipboard.writeText(outputEl.value).then(() => {
+        const btn = event.target; btn.textContent = "Copied!"; setTimeout(() => btn.textContent = "Copy", 1500);
+      });
+    }
+    function copyDataURI() {
+      navigator.clipboard.writeText(dataUriOut.value).then(() => {
+        copyUriBtn.textContent = "Copied!"; setTimeout(() => copyUriBtn.textContent = "Copy Data URI", 1500);
+      });
+    }
+
+    dropZone.addEventListener("click", () => fileInput.click());
+    dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("drag-over"); });
+    dropZone.addEventListener("dragleave", () => dropZone.classList.remove("drag-over"));
+    dropZone.addEventListener("drop", e => {
+      e.preventDefault(); dropZone.classList.remove("drag-over");
+      if (e.dataTransfer.files.length) processFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener("change", e => { if (e.target.files.length) processFile(e.target.files[0]); });
+
+    function processFile(file) {
+      fileInfo.classList.remove("hidden");
+      fileName.textContent = file.name;
+      fileSize.textContent = formatBytes(file.size);
+      const reader = new FileReader();
+      reader.onload = () => { dataUriOut.value = reader.result; copyUriBtn.classList.remove("hidden"); };
+      reader.readAsDataURL(file);
+    }
+    function formatBytes(b) {
+      if (b < 1024) return b + " B";
+      if (b < 1048576) return (b/1024).toFixed(1) + " KB";
+      return (b/1048576).toFixed(2) + " MB";
+    }
+  </script>
+</body>
+</html>

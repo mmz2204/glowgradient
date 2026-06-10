@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Number Base Converter — Eric's Tools</title>
+  <meta name="description" content="Convert numbers between decimal, binary, hex, and octal instantly.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23080c14'/><text x='16' y='22' text-anchor='middle' font-size='16' font-family='system-ui,sans-serif' font-weight='900' fill='%2322d3ee'>N</text></svg>">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    body{background:#080c14;color:#f3f4f6}
+    .glass{background:rgba(15,23,42,0.4);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.03)}
+    .input-field{background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.07);color:#f3f4f6;font-family:monospace}
+    .input-field:focus{outline:none;border-color:rgba(34,211,238,0.4);box-shadow:0 0 0 3px rgba(34,211,238,0.08)}
+    .row{display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(15,23,42,0.3);border-radius:12px;margin-bottom:8px}
+    .row-label{min-width:90px;font-size:13px;font-family:monospace;font-weight:600}
+    .row-value{flex:1;font-size:18px;font-family:monospace;color:#22d3ee;word-break:break-all}
+    .row-copy{color:#6b7280;font-size:11px;cursor:pointer;font-family:monospace;background:none;border:none}
+    .row-copy:hover{color:#22d3ee}
+    .label-dec{color:#22d3ee}.label-hex{color:#a855f7}.label-bin{color:#4ade80}.label-oct{color:#fbbf24}
+  </style>
+</head>
+<body class="min-h-screen w-screen flex flex-col items-center p-6 md:p-12">
+
+  <header class="w-full max-w-2xl mb-8">
+    <a href="index.html" class="text-xs font-mono text-cyan-400 hover:text-cyan-300">← Back to Eric's Tools</a>
+    <h1 class="text-3xl md:text-4xl font-black mt-4 tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-500 bg-clip-text text-transparent">Number Base Converter</h1>
+    <p class="text-gray-400 text-sm mt-2">Convert between decimal, hexadecimal, binary, and octal in real time.</p>
+  </header>
+
+  <main class="w-full max-w-2xl space-y-6">
+
+    <div class="glass rounded-2xl p-5">
+      <label class="text-xs font-mono text-gray-400 mb-2 block">Enter a number in any base</label>
+      <input id="input" type="text" value="255" class="input-field w-full p-3 rounded-xl text-lg" placeholder="Enter a number..." oninput="convert()">
+      <p id="error" class="text-xs text-red-400 font-mono mt-2 hidden"></p>
+    </div>
+
+    <div class="glass rounded-2xl p-5 space-y-1">
+      <div class="row">
+        <span class="row-label label-dec">Decimal</span>
+        <span class="row-value" id="dec">255</span>
+        <button class="row-copy" onclick="copyVal('dec')">Copy</button>
+      </div>
+      <div class="row">
+        <span class="row-label label-hex">Hexadecimal</span>
+        <span class="row-value" id="hex">FF</span>
+        <button class="row-copy" onclick="copyVal('hex')">Copy</button>
+      </div>
+      <div class="row">
+        <span class="row-label label-bin">Binary</span>
+        <span class="row-value" id="bin">11111111</span>
+        <button class="row-copy" onclick="copyVal('bin')">Copy</button>
+      </div>
+      <div class="row">
+        <span class="row-label label-oct">Octal</span>
+        <span class="row-value" id="oct">377</span>
+        <button class="row-copy" onclick="copyVal('oct')">Copy</button>
+      </div>
+    </div>
+
+    <div class="flex gap-3 flex-wrap">
+      <button class="px-4 py-2 rounded-lg text-xs font-mono border border-gray-700 text-gray-400 hover:text-gray-200 hover:border-gray-500 transition-colors" onclick="setSample('15')">15</button>
+      <button class="px-4 py-2 rounded-lg text-xs font-mono border border-gray-700 text-gray-400 hover:text-gray-200 hover:border-gray-500 transition-colors" onclick="setSample('255')">255</button>
+      <button class="px-4 py-2 rounded-lg text-xs font-mono border border-gray-700 text-gray-400 hover:text-gray-200 hover:border-gray-500 transition-colors" onclick="setSample('1024')">1024</button>
+      <button class="px-4 py-2 rounded-lg text-xs font-mono border border-gray-700 text-gray-400 hover:text-gray-200 hover:border-gray-500 transition-colors" onclick="setSample('65535')">65535</button>
+      <button class="px-4 py-2 rounded-lg text-xs font-mono border border-gray-700 text-gray-400 hover:text-gray-200 hover:border-gray-500 transition-colors" onclick="setSample('0xFF')">0xFF</button>
+      <button class="px-4 py-2 rounded-lg text-xs font-mono border border-gray-700 text-gray-400 hover:text-gray-200 hover:border-gray-500 transition-colors" onclick="setSample('0b1010')">0b1010</button>
+    </div>
+
+  </main>
+
+  <script>
+    const inputEl = document.getElementById("input");
+    const errorEl = document.getElementById("error");
+
+    function setSample(v) { inputEl.value = v; convert(); }
+
+    function parseInput(s) {
+      s = s.trim();
+      if (/^0x[0-9a-fA-F]+$/.test(s)) return parseInt(s, 16);
+      if (/^0b[01]+$/.test(s)) return parseInt(s, 2);
+      if (/^0o[0-7]+$/.test(s)) return parseInt(s, 8);
+      if (/^[0-9]+$/.test(s)) return parseInt(s, 10);
+      if (/^[0-9a-fA-F]+$/.test(s)) return parseInt(s, 16);
+      return NaN;
+    }
+
+    function convert() {
+      errorEl.classList.add("hidden");
+      const val = parseInput(inputEl.value);
+      if (isNaN(val) || val < 0 || !Number.isSafeInteger(val)) {
+        if (inputEl.value.trim()) { errorEl.classList.remove("hidden"); errorEl.textContent = "Enter a valid non-negative integer"; }
+        document.getElementById("dec").textContent = "—";
+        document.getElementById("hex").textContent = "—";
+        document.getElementById("bin").textContent = "—";
+        document.getElementById("oct").textContent = "—";
+        return;
+      }
+      document.getElementById("dec").textContent = val.toLocaleString();
+      document.getElementById("hex").textContent = val.toString(16).toUpperCase();
+      document.getElementById("bin").textContent = val.toString(2);
+      document.getElementById("oct").textContent = val.toString(8);
+    }
+
+    function copyVal(id) {
+      const text = document.getElementById(id).textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = event.target; btn.textContent = "✓"; setTimeout(() => btn.textContent = "Copy", 1500);
+      });
+    }
+
+    convert();
+  </script>
+</body>
+</html>

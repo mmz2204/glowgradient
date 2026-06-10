@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>URL Encoder — Eric's Tools</title>
+  <meta name="description" content="Encode and decode URL strings with parameter breakdown.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23080c14'/><text x='16' y='22' text-anchor='middle' font-size='16' font-family='system-ui,sans-serif' font-weight='900' fill='%2322d3ee'>U</text></svg>">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    body{background:#080c14;color:#f3f4f6}
+    .glass{background:rgba(15,23,42,0.4);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.03)}
+    textarea,input[type=text]{background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.07);color:#f3f4f6;font-family:monospace}
+    textarea:focus,input:focus{outline:none;border-color:rgba(34,211,238,0.4);box-shadow:0 0 0 3px rgba(34,211,238,0.08)}
+    .btn-cyan{background:rgba(34,211,238,0.15);color:#22d3ee;border:1px solid rgba(34,211,238,0.3);cursor:pointer;transition:all 0.2s}
+    .btn-cyan:hover{background:rgba(34,211,238,0.25)}
+    .param-row{display:flex;gap:8px;align-items:center;padding:8px 12px;background:rgba(15,23,42,0.3);border-radius:10px;margin-bottom:6px}
+    .param-key{color:#22d3ee;font-family:monospace;font-size:13px;min-width:100px}
+    .param-val{color:#a5b4fc;font-family:monospace;font-size:13px;flex:1;word-break:break-all}
+    .param-decoded{color:#6b7280;font-size:11px;font-family:monospace}
+  </style>
+</head>
+<body class="min-h-screen w-screen flex flex-col items-center p-6 md:p-12">
+
+  <header class="w-full max-w-2xl mb-8">
+    <a href="index.html" class="text-xs font-mono text-cyan-400 hover:text-cyan-300">← Back to Eric's Tools</a>
+    <h1 class="text-3xl md:text-4xl font-black mt-4 tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-500 bg-clip-text text-transparent">URL Encoder</h1>
+    <p class="text-gray-400 text-sm mt-2">Encode, decode, and break down URL query parameters.</p>
+  </header>
+
+  <main class="w-full max-w-2xl space-y-6">
+
+    <div>
+      <label class="text-xs font-mono text-gray-400 mb-1 block">Input</label>
+      <textarea id="input" rows="3" class="w-full p-4 rounded-xl text-sm resize-y" placeholder="Paste a URL or text to encode/decode..."></textarea>
+    </div>
+
+    <div class="flex gap-3 flex-wrap">
+      <button class="btn-cyan px-5 py-2 rounded-lg text-sm font-mono" onclick="encode()">Encode URL</button>
+      <button class="btn-cyan px-5 py-2 rounded-lg text-sm font-mono" onclick="decode()">Decode URL</button>
+      <button class="btn-cyan px-5 py-2 rounded-lg text-sm font-mono" onclick="encodeURI()">Encode Component</button>
+      <button class="btn-cyan px-5 py-2 rounded-lg text-sm font-mono" onclick="decodeURI()">Decode Component</button>
+    </div>
+
+    <div>
+      <div class="flex justify-between items-center mb-1">
+        <label class="text-xs font-mono text-gray-400">Output</label>
+        <button class="text-xs font-mono text-cyan-400 hover:text-cyan-300" onclick="copyOut()">Copy</button>
+      </div>
+      <textarea id="output" rows="3" class="w-full p-4 rounded-xl text-sm resize-y" readonly placeholder="Result..."></textarea>
+    </div>
+
+    <div id="params-section" class="glass rounded-2xl p-5 hidden">
+      <h3 class="text-sm font-bold text-gray-300 mb-3">Query Parameters</h3>
+      <div id="params-list"></div>
+    </div>
+
+  </main>
+
+  <script>
+    const inp = document.getElementById("input");
+    const out = document.getElementById("output");
+    const paramsSection = document.getElementById("params-section");
+    const paramsList = document.getElementById("params-list");
+
+    function encode()  { out.value = encodeURI(inp.value); parseParams(inp.value); }
+    function decode()  { try { out.value = decodeURI(inp.value); } catch(e) { out.value = "Error: invalid encoding"; } }
+    function encodeURI() { out.value = encodeURIComponent(inp.value); }
+    function decodeURI() { try { out.value = decodeURIComponent(inp.value); } catch(e) { out.value = "Error: invalid encoding"; } }
+    function copyOut() {
+      navigator.clipboard.writeText(out.value).then(() => {
+        const b = event.target; b.textContent = "Copied!"; setTimeout(() => b.textContent = "Copy", 1500);
+      });
+    }
+
+    function parseParams(url) {
+      try {
+        const u = new URL(url.includes("://") ? url : "https://example.com?" + url.split("?")[1]);
+        const params = [...u.searchParams.entries()];
+        if (params.length === 0) { paramsSection.classList.add("hidden"); return; }
+        paramsSection.classList.remove("hidden");
+        paramsList.innerHTML = params.map(([k,v]) => `
+          <div class="param-row">
+            <span class="param-key">${escapeHtml(k)}</span>
+            <span class="param-val">${escapeHtml(v)}</span>
+            <span class="param-decoded">${escapeHtml(tryDecode(v))}</span>
+          </div>
+        `).join("");
+      } catch(e) { paramsSection.classList.add("hidden"); }
+    }
+
+    function tryDecode(s) {
+      try { const d = decodeURIComponent(s); return d !== s ? "→ " + d : ""; }
+      catch(e) { return ""; }
+    }
+    function escapeHtml(s) { return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  </script>
+</body>
+</html>

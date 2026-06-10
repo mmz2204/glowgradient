@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JWT Decoder — Eric's Tools</title>
+  <meta name="description" content="Decode JWT tokens locally in your browser. No data sent anywhere.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23080c14'/><text x='16' y='22' text-anchor='middle' font-size='16' font-family='system-ui,sans-serif' font-weight='900' fill='%2322d3ee'>J</text></svg>">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    body{background:#080c14;color:#f3f4f6}
+    .glass{background:rgba(15,23,42,0.4);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.03)}
+    textarea{background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.07);color:#f3f4f6;font-family:monospace}
+    textarea:focus{outline:none;border-color:rgba(34,211,238,0.4);box-shadow:0 0 0 3px rgba(34,211,238,0.08)}
+    pre{background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.05);border-radius:12px;padding:16px;color:#e2e8f0;font-size:12px;overflow-x:auto;white-space:pre-wrap;word-break:break-all}
+    .key{color:#22d3ee}
+    .str{color:#4ade80}
+    .num{color:#fbbf24}
+    .bool{color:#c084fc}
+    .null{color:#94a3b8}
+    .pill{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-family:monospace}
+    .pill-header{background:rgba(34,211,238,0.1);color:#22d3ee}
+    .pill-payload{background:rgba(168,85,247,0.1);color:#a855f7}
+  </style>
+</head>
+<body class="min-h-screen w-screen flex flex-col items-center p-6 md:p-12">
+
+  <header class="w-full max-w-2xl mb-8">
+    <a href="index.html" class="text-xs font-mono text-cyan-400 hover:text-cyan-300">← Back to Eric's Tools</a>
+    <h1 class="text-3xl md:text-4xl font-black mt-4 tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-500 bg-clip-text text-transparent">JWT Decoder</h1>
+    <p class="text-gray-400 text-sm mt-2">Decode JWT header and payload entirely in your browser. Zero network requests.</p>
+  </header>
+
+  <main class="w-full max-w-2xl space-y-6">
+
+    <div>
+      <label class="text-xs font-mono text-gray-400 mb-1 block">Paste JWT Token</label>
+      <textarea id="jwt-input" rows="3" class="w-full p-4 rounded-xl text-sm resize-y" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."></textarea>
+    </div>
+    <p id="error" class="text-xs text-red-400 font-mono hidden"></p>
+
+    <div id="results" class="space-y-4 hidden">
+      <div class="glass rounded-2xl p-5">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="pill pill-header">HEADER</span>
+          <span id="header-alg" class="text-xs text-gray-400 font-mono"></span>
+        </div>
+        <pre id="header-out"></pre>
+      </div>
+      <div class="glass rounded-2xl p-5">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="pill pill-payload">PAYLOAD</span>
+          <span id="payload-info" class="text-xs text-gray-400 font-mono"></span>
+        </div>
+        <pre id="payload-out"></pre>
+      </div>
+      <div class="glass rounded-2xl p-4" id="claims-card">
+        <h3 class="text-sm font-bold text-gray-300 mb-3">Claims</h3>
+        <div id="claims-list" class="space-y-2"></div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    const input = document.getElementById("jwt-input");
+    const errorEl = document.getElementById("error");
+    const results = document.getElementById("results");
+
+    function syntaxHighlight(json) {
+      return JSON.stringify(json, null, 2)
+        .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+        .replace(/("(\\u[a-f\d]{4}|\\[^u]|[^"\\])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g, m => {
+          let cls = "num";
+          if (/^"/.test(m)) cls = /:$/.test(m) ? "key" : "str";
+          else if (/true|false/.test(m)) cls = "bool";
+          else if (/null/.test(m)) cls = "null";
+          return '<span class="' + cls + '">' + m + '</span>';
+        });
+    }
+
+    function decode() {
+      errorEl.classList.add("hidden");
+      results.classList.add("hidden");
+      const token = input.value.trim();
+      if (!token) return;
+
+      const parts = token.split(".");
+      if (parts.length !== 3) {
+        errorEl.textContent = "Invalid JWT: expected 3 parts separated by dots";
+        errorEl.classList.remove("hidden");
+        return;
+      }
+
+      try {
+        let header, payload;
+        try { header = JSON.parse(atob(parts[0])); }
+        catch(e) { header = JSON.parse(atob(parts[0].replace(/-/g,"+").replace(/_/g,"/"))); }
+        try { payload = JSON.parse(atob(parts[1])); }
+        catch(e) { payload = JSON.parse(atob(parts[1].replace(/-/g,"+").replace(/_/g,"/"))); }
+
+        document.getElementById("header-out").innerHTML = syntaxHighlight(header);
+        document.getElementById("header-alg").textContent = "Algorithm: " + (header.alg || "none");
+
+        document.getElementById("payload-out").innerHTML = syntaxHighlight(payload);
+        document.getElementById("payload-info").textContent = Object.keys(payload).length + " fields";
+
+        // Claims
+        const claims = [];
+        const knownClaims = { iss:"Issuer", sub:"Subject", aud:"Audience", exp:"Expires", nbf:"Not Before", iat:"Issued At", jti:"JWT ID" };
+        for (const [k,v] of Object.entries(payload)) {
+          let label = knownClaims[k] || k;
+          let display = v;
+          if ((k==="exp"||k==="nbf"||k==="iat") && typeof v === "number") {
+            const d = new Date(v*1000);
+            display = d.toLocaleString() + " (" + (d > new Date() ? "valid" : "expired") + ")";
+          }
+          claims.push(`<div class="flex justify-between items-center py-1.5 px-3 rounded-lg" style="background:rgba(15,23,42,0.3)"><span class="text-xs text-gray-400 font-mono">${label}</span><span class="text-sm font-mono text-cyan-400">${display}</span></div>`);
+        }
+        document.getElementById("claims-list").innerHTML = claims.join("");
+
+        results.classList.remove("hidden");
+      } catch(e) {
+        errorEl.textContent = "Decode error: " + e.message;
+        errorEl.classList.remove("hidden");
+      }
+    }
+
+    input.addEventListener("input", decode);
+  </script>
+</body>
+</html>

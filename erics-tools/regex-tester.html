@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Regex Tester — Eric's Tools</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230f172a'/%3E%3Ctext x='16' y='23' text-anchor='middle' font-family='monospace' font-size='20' font-weight='bold' fill='%2322d3ee'%3ER%3C/text%3E%3C/svg%3E">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<style type="text/tailwindcss">
+  @theme {
+    --color-accent: #22d3ee;
+    --color-accent-hover: #67e8f9;
+    --color-accent-dim: #0891b2;
+    --color-surface: #0f172a;
+    --color-surface-light: #1e293b;
+    --color-error: #ef4444;
+    --color-error-dim: #7f1d1d;
+    --color-text-primary: #f3f4f6;
+    --color-text-secondary: #94a3b8;
+    --color-text-muted: #64748b;
+    --color-border: rgba(255,255,255,0.06);
+  }
+</style>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #080c14;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(34,211,238,0.08), transparent),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(34,211,238,0.04), transparent);
+    background-attachment: fixed;
+  }
+  .glass-card {
+    background: rgba(15,23,42,0.4);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.03);
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+  }
+  .glass-card-inner {
+    background: rgba(15,23,42,0.3);
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 12px;
+  }
+  textarea {
+    resize: vertical;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(34,211,238,0.3) transparent;
+  }
+  textarea::-webkit-scrollbar { width: 6px; }
+  textarea::-webkit-scrollbar-track { background: transparent; }
+  textarea::-webkit-scrollbar-thumb {
+    background: rgba(34,211,238,0.3);
+    border-radius: 3px;
+  }
+  .toggle-chip {
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .toggle-chip:hover {
+    border-color: rgba(34,211,238,0.4);
+  }
+  .toggle-chip.active {
+    background: rgba(34,211,238,0.15);
+    border-color: rgba(34,211,238,0.6);
+    color: #22d3ee;
+    box-shadow: 0 0 12px rgba(34,211,238,0.1);
+  }
+  .toggle-chip.active::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    background: rgba(34,211,238,0.08);
+    pointer-events: none;
+  }
+  .match-highlight {
+    background: rgba(34,211,238,0.25);
+    color: #22d3ee;
+    border-radius: 3px;
+    padding: 1px 2px;
+    font-weight: 500;
+  }
+  .highlight-container {
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  .capture-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  .capture-table th {
+    background: rgba(34,211,238,0.08);
+    color: #22d3ee;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .capture-table th,
+  .capture-table td {
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .capture-table tr:last-child td { border-bottom: none; }
+  .capture-table td {
+    font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    font-size: 13px;
+    color: #e2e8f0;
+  }
+  .capture-table tr:hover td { background: rgba(34,211,238,0.03); }
+  .capture-index {
+    color: #64748b;
+    font-size: 12px;
+    min-width: 40px;
+  }
+  .capture-empty {
+    color: #475569;
+    font-style: italic;
+  }
+  select {
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2322d3ee' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-in { animation: fadeIn 0.3s ease; }
+
+  @media (max-width: 768px) {
+    .highlight-container { font-size: 12px; }
+    .capture-table th,
+    .capture-table td { padding: 6px 8px; font-size: 11px; }
+  }
+</style>
+</head>
+<body class="min-h-screen text-[#f3f4f6] flex flex-col">
+
+<!-- Header -->
+<header class="px-4 sm:px-6 lg:px-8 py-5">
+  <div class="max-w-6xl mx-auto">
+    <a href="index.html" class="inline-flex items-center gap-2 text-[#22d3ee] hover:text-[#67e8f9] transition-colors text-sm font-medium group mb-3">
+      <svg class="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+      </svg>
+      Back to Eric's Tools
+    </a>
+    <h1 class="text-3xl sm:text-4xl font-bold tracking-tight">
+      <span class="text-[#22d3ee]">Regex</span> Tester
+    </h1>
+    <p class="text-[#94a3b8] mt-1.5 text-sm sm:text-base">Test, debug, and visualize regular expressions in real-time</p>
+  </div>
+</header>
+
+<!-- Main Content -->
+<main class="flex-1 px-4 sm:px-6 lg:px-8 pb-12">
+  <div class="max-w-6xl mx-auto space-y-5">
+
+    <!-- Pattern Input Card -->
+    <div class="glass-card p-5 sm:p-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+        <label for="patternInput" class="text-sm font-semibold text-[#94a3b8] uppercase tracking-wider">Pattern</label>
+        <div class="relative">
+          <select id="presetSelect" class="bg-[#0f172a]/80 border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm text-[#e2e8f0] cursor-pointer hover:border-[rgba(34,211,238,0.3)] focus:outline-none focus:border-[#22d3ee] focus:ring-1 focus:ring-[#22d3ee]/30 transition-all">
+            <option value="">Load a preset pattern...</option>
+            <option value="email">Email</option>
+            <option value="url">URL</option>
+            <option value="phone-cn">Phone (CN)</option>
+            <option value="ip">IP Address</option>
+            <option value="chinese">Chinese Characters</option>
+            <option value="hex-color">Hex Color</option>
+            <option value="date">Date (YYYY-MM-DD)</option>
+          </select>
+        </div>
+      </div>
+      <textarea id="patternInput"
+        placeholder="Enter regex pattern...&#10;e.g. /hello\s(\w+)/gi or just hello\s(\w+)"
+        rows="2"
+        spellcheck="false"
+        class="w-full bg-[#0f172a]/60 border border-[rgba(255,255,255,0.06)] rounded-xl px-4 py-3 text-sm font-mono text-[#e2e8f0] placeholder:text-[#475569] focus:outline-none focus:border-[#22d3ee]/50 focus:ring-1 focus:ring-[#22d3ee]/20 transition-all"></textarea>
+
+      <!-- Flag Toggles -->
+      <div class="flex flex-wrap items-center gap-2 mt-4">
+        <span class="text-xs text-[#64748b] font-medium mr-1">Flags:</span>
+        <button class="toggle-chip px-3 py-1.5 text-xs font-mono font-semibold rounded-full border border-[rgba(255,255,255,0.06)] text-[#94a3b8] bg-[#0f172a]/40" data-flag="g" title="Global — find all matches">
+          <span class="text-[#22d3ee] mr-0.5">g</span> global
+        </button>
+        <button class="toggle-chip px-3 py-1.5 text-xs font-mono font-semibold rounded-full border border-[rgba(255,255,255,0.06)] text-[#94a3b8] bg-[#0f172a]/40" data-flag="i" title="Case-insensitive matching">
+          <span class="text-[#22d3ee] mr-0.5">i</span> case-insensitive
+        </button>
+        <button class="toggle-chip px-3 py-1.5 text-xs font-mono font-semibold rounded-full border border-[rgba(255,255,255,0.06)] text-[#94a3b8] bg-[#0f172a]/40" data-flag="m" title="Multiline — ^ and $ match line boundaries">
+          <span class="text-[#22d3ee] mr-0.5">m</span> multiline
+        </button>
+        <button class="toggle-chip px-3 py-1.5 text-xs font-mono font-semibold rounded-full border border-[rgba(255,255,255,0.06)] text-[#94a3b8] bg-[#0f172a]/40" data-flag="s" title="Dotall — . matches newlines">
+          <span class="text-[#22d3ee] mr-0.5">s</span> dotall
+        </button>
+        <button class="toggle-chip px-3 py-1.5 text-xs font-mono font-semibold rounded-full border border-[rgba(255,255,255,0.06)] text-[#94a3b8] bg-[#0f172a]/40" data-flag="u" title="Unicode — enable Unicode features">
+          <span class="text-[#22d3ee] mr-0.5">u</span> unicode
+        </button>
+      </div>
+    </div>
+
+    <!-- Test String Card -->
+    <div class="glass-card p-5 sm:p-6">
+      <label for="testInput" class="block text-sm font-semibold text-[#94a3b8] uppercase tracking-wider mb-4">Test String</label>
+      <textarea id="testInput"
+        placeholder="Enter text to test against your regex..."
+        rows="6"
+        spellcheck="false"
+        class="w-full bg-[#0f172a]/60 border border-[rgba(255,255,255,0.06)] rounded-xl px-4 py-3 text-sm font-mono text-[#e2e8f0] placeholder:text-[#475569] focus:outline-none focus:border-[#22d3ee]/50 focus:ring-1 focus:ring-[#22d3ee]/20 transition-all"></textarea>
+    </div>
+
+    <!-- Results Card -->
+    <div class="glass-card p-5 sm:p-6" id="resultsCard">
+      <!-- Empty State -->
+      <div id="emptyState" class="text-center py-10">
+        <svg class="w-12 h-12 mx-auto text-[#1e293b] mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M7 21l-4.6-4.6a1 1 0 010-1.4l12-12a1 1 0 011.4 0l4.6 4.6a1 1 0 010 1.4l-12 12a1 1 0 01-1.4 0L3.4 16.6a1 1 0 010-1.4L7 21z"/>
+        </svg>
+        <p class="text-[#475569] text-sm">Enter a pattern and test string above to see results</p>
+      </div>
+
+      <!-- Error State -->
+      <div id="errorState" class="hidden">
+        <div class="flex items-start gap-3 p-4 rounded-xl bg-[#7f1d1d]/20 border border-[#ef4444]/20">
+          <svg class="w-5 h-5 text-[#ef4444] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <div>
+            <p class="text-[#ef4444] font-semibold text-sm">Invalid Regular Expression</p>
+            <p id="errorMessage" class="text-[#fca5a5] text-sm mt-1"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div id="resultsContent" class="hidden">
+        <!-- Match Count -->
+        <div class="flex items-center gap-3 mb-5">
+          <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#22d3ee]/10 border border-[#22d3ee]/20">
+            <span class="w-2 h-2 rounded-full bg-[#22d3ee]"></span>
+            <span id="matchCount" class="text-sm font-semibold text-[#22d3ee]"></span>
+          </div>
+          <div id="flagsDisplay" class="flex items-center gap-1"></div>
+        </div>
+
+        <!-- Highlighted Text -->
+        <div class="glass-card-inner p-4 mb-5">
+          <p class="text-xs text-[#64748b] font-medium uppercase tracking-wider mb-3">Matches Highlighted</p>
+          <div id="highlightedText" class="highlight-container text-[#cbd5e1]"></div>
+        </div>
+
+        <!-- Capture Groups Table -->
+        <div id="captureGroupsSection" class="hidden">
+          <p class="text-xs text-[#64748b] font-medium uppercase tracking-wider mb-3">Capture Groups</p>
+          <div class="glass-card-inner overflow-x-auto">
+            <table class="capture-table">
+              <thead id="captureTableHead"></thead>
+              <tbody id="captureTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Footer -->
+<footer class="py-4 text-center text-xs text-[#334155] border-t border-[rgba(255,255,255,0.02)]">
+  Eric's Tools &mdash; Regex Tester
+</footer>
+
+<script>
+(function() {
+  'use strict';
+
+  // ─── DOM References ───
+  const patternInput = document.getElementById('patternInput');
+  const testInput = document.getElementById('testInput');
+  const presetSelect = document.getElementById('presetSelect');
+  const errorState = document.getElementById('errorState');
+  const errorMessage = document.getElementById('errorMessage');
+  const emptyState = document.getElementById('emptyState');
+  const resultsContent = document.getElementById('resultsContent');
+  const matchCountEl = document.getElementById('matchCount');
+  const flagsDisplay = document.getElementById('flagsDisplay');
+  const highlightedText = document.getElementById('highlightedText');
+  const captureGroupsSection = document.getElementById('captureGroupsSection');
+  const captureTableHead = document.getElementById('captureTableHead');
+  const captureTableBody = document.getElementById('captureTableBody');
+  const flagToggles = document.querySelectorAll('.toggle-chip');
+
+  // ─── Presets ───
+  const presets = {
+    email:    { pattern: '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}',   flags: 'gi' },
+    url:      { pattern: 'https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_+.~#?&\\/=]*)', flags: 'gi' },
+    'phone-cn': { pattern: '1[3-9]\\d{9}',                                       flags: 'g' },
+    ip:       { pattern: '\\b(?:(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\\.){3}(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\\b', flags: 'g' },
+    chinese:  { pattern: '[\\u4e00-\\u9fff]+',                                    flags: 'g' },
+    'hex-color': { pattern: '#(?:[a-fA-F0-9]{6}|[a-fA-F0-9]{3})\\b',            flags: 'gi' },
+    date:     { pattern: '\\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\\d|3[01])',   flags: 'g' },
+  };
+
+  // ─── State ───
+  let isUpdatingFromFlags = false;
+  let isUpdatingFromPattern = false;
+  let debounceTimer = null;
+
+  // ─── Flag Helpers ───
+  function getActiveFlags() {
+    let flags = '';
+    flagToggles.forEach(btn => {
+      if (btn.classList.contains('active')) flags += btn.dataset.flag;
+    });
+    return flags;
+  }
+
+  function setFlagState(flag, active) {
+    flagToggles.forEach(btn => {
+      if (btn.dataset.flag === flag) {
+        if (active) btn.classList.add('active');
+        else btn.classList.remove('active');
+      }
+    });
+  }
+
+  function setAllFlags(flagsStr) {
+    flagToggles.forEach(btn => {
+      if (flagsStr.includes(btn.dataset.flag)) btn.classList.add('active');
+      else btn.classList.remove('active');
+    });
+  }
+
+  // ─── Parse /pattern/flags from input ───
+  function parsePatternInput(raw) {
+    const trimmed = raw.trim();
+    if (!trimmed) return { pattern: '', flags: '' };
+    const m = trimmed.match(/^\/(.+)\/([gimsuy]*)$/);
+    if (m) return { pattern: m[1], flags: m[2] };
+    return { pattern: trimmed, flags: getActiveFlags() };
+  }
+
+  // ─── HTML Escape ───
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+  }
+
+  // ─── Main Test Function ───
+  function runTest() {
+    const rawPattern = patternInput.value;
+
+    // Parse
+    let parsed;
+    if (rawPattern.trim().startsWith('/')) {
+      const m = rawPattern.trim().match(/^\/(.+)\/([gimsuy]*)$/);
+      if (m) {
+        parsed = { pattern: m[1], flags: m[2] };
+        // Sync flag toggles without re-triggering pattern update
+        if (!isUpdatingFromPattern) {
+          isUpdatingFromFlags = true;
+          setAllFlags(parsed.flags);
+          isUpdatingFromFlags = false;
+        }
+      } else {
+        parsed = { pattern: rawPattern, flags: getActiveFlags() };
+      }
+    } else {
+      parsed = { pattern: rawPattern, flags: getActiveFlags() };
+    }
+
+    const testStr = testInput.value;
+
+    // No input → show empty state
+    if (!parsed.pattern && !testStr) {
+      showEmpty();
+      return;
+    }
+
+    // No pattern → show empty state
+    if (!parsed.pattern) {
+      showEmpty();
+      return;
+    }
+
+    // Build flags string ensuring 'g' works with matchAll
+    let flags = parsed.flags;
+    // matchAll requires 'g' flag; if user doesn't have it, add temporarily for counting but note it
+    let regexFlags = flags.includes('g') ? flags : flags + 'g';
+
+    let regex;
+    try {
+      regex = new RegExp(parsed.pattern, regexFlags);
+    } catch (e) {
+      showError(e.message);
+      return;
+    }
+
+    // Find matches
+    let matches;
+    try {
+      matches = [...testStr.matchAll(regex)];
+    } catch (e) {
+      showError(e.message);
+      return;
+    }
+
+    // If user didn't enable global, only show first match conceptually
+    // (but matchAll with 'g' finds all, so we limit display)
+    if (!flags.includes('g') && matches.length > 1) {
+      matches = matches.slice(0, 1);
+    }
+
+    if (matches.length === 0) {
+      showNoMatches();
+      return;
+    }
+
+    showResults(matches, testStr, flags, parsed.pattern);
+  }
+
+  // ─── Show Empty State ───
+  function showEmpty() {
+    emptyState.classList.remove('hidden');
+    errorState.classList.add('hidden');
+    resultsContent.classList.add('hidden');
+  }
+
+  // ─── Show Error ───
+  function showError(msg) {
+    emptyState.classList.add('hidden');
+    errorState.classList.remove('hidden');
+    resultsContent.classList.add('hidden');
+    errorMessage.textContent = msg;
+  }
+
+  // ─── Show No Matches ───
+  function showNoMatches() {
+    emptyState.classList.add('hidden');
+    errorState.classList.add('hidden');
+    resultsContent.classList.remove('hidden');
+    matchCountEl.textContent = '0 matches found';
+    highlightedText.innerHTML = '<span class="text-[#64748b] italic">No matches in test string</span>';
+    captureGroupsSection.classList.add('hidden');
+    flagsDisplay.innerHTML = '';
+  }
+
+  // ─── Show Results ───
+  function showResults(matches, testStr, flags, pattern) {
+    emptyState.classList.add('hidden');
+    errorState.classList.add('hidden');
+    resultsContent.classList.remove('hidden');
+    resultsContent.classList.add('fade-in');
+
+    // Match count
+    const count = matches.length;
+    matchCountEl.textContent = count === 1 ? '1 match found' : `${count} matches found`;
+
+    // Flags display
+    flagsDisplay.innerHTML = '';
+    if (flags) {
+      for (const f of flags) {
+        const chip = document.createElement('span');
+        chip.className = 'px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#0f172a]/60 border border-[rgba(255,255,255,0.06)] text-[#22d3ee]';
+        chip.textContent = f;
+        flagsDisplay.appendChild(chip);
+      }
+    }
+
+    // Highlighted text
+    highlightedText.innerHTML = buildHighlightedHtml(testStr, matches);
+    highlightedText.classList.add('fade-in');
+
+    // Capture groups
+    const maxGroups = Math.max(...matches.map(m => m.length - 1), 0);
+    if (maxGroups > 0) {
+      buildCaptureTable(matches, maxGroups);
+      captureGroupsSection.classList.remove('hidden');
+    } else {
+      captureGroupsSection.classList.add('hidden');
+    }
+  }
+
+  // ─── Build Highlighted HTML ───
+  function buildHighlightedHtml(text, matches) {
+    if (matches.length === 0) return escapeHtml(text);
+
+    // Sort matches by index (should already be sorted from matchAll)
+    const segments = [];
+    let lastEnd = 0;
+
+    for (const match of matches) {
+      // Text before this match
+      if (match.index > lastEnd) {
+        segments.push(escapeHtml(text.slice(lastEnd, match.index)));
+      }
+      // The match itself
+      segments.push(`<span class="match-highlight">${escapeHtml(match[0])}</span>`);
+      lastEnd = match.index + match[0].length;
+    }
+
+    // Remaining text after last match
+    if (lastEnd < text.length) {
+      segments.push(escapeHtml(text.slice(lastEnd)));
+    }
+
+    return segments.join('');
+  }
+
+  // ─── Build Capture Groups Table ───
+  function buildCaptureTable(matches, maxGroups) {
+    // Head
+    let headHtml = '<tr><th>#</th><th>Match</th>';
+    for (let g = 1; g <= maxGroups; g++) {
+      headHtml += `<th>Group ${g}</th>`;
+    }
+    headHtml += '</tr>';
+    captureTableHead.innerHTML = headHtml;
+
+    // Body
+    let bodyHtml = '';
+    matches.forEach((match, idx) => {
+      bodyHtml += '<tr>';
+      bodyHtml += `<td class="capture-index">${idx + 1}</td>`;
+      bodyHtml += `<td><span class="text-[#22d3ee]">${escapeHtml(match[0])}</span></td>`;
+      for (let g = 1; g <= maxGroups; g++) {
+        const val = match[g];
+        if (val !== undefined) {
+          bodyHtml += `<td>${escapeHtml(val)}</td>`;
+        } else {
+          bodyHtml += `<td class="capture-empty">&mdash;</td>`;
+        }
+      }
+      bodyHtml += '</tr>';
+    });
+    captureTableBody.innerHTML = bodyHtml;
+  }
+
+  // ─── Debounced Run ───
+  function debouncedRun() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(runTest, 200);
+  }
+
+  // ─── Pattern Input: Detect /pattern/flags ───
+  patternInput.addEventListener('input', function() {
+    if (isUpdatingFromFlags) return;
+
+    const raw = this.value.trim();
+    const m = raw.match(/^\/(.+)\/([gimsuy]*)$/);
+    if (m) {
+      isUpdatingFromPattern = true;
+      setAllFlags(m[2]);
+      isUpdatingFromPattern = false;
+    }
+    debouncedRun();
+  });
+
+  // ─── Test String Input ───
+  testInput.addEventListener('input', debouncedRun);
+
+  // ─── Flag Toggles ───
+  flagToggles.forEach(btn => {
+    btn.addEventListener('click', function() {
+      this.classList.toggle('active');
+
+      // Update pattern input with /pattern/flags format if the input currently uses that format
+      if (!isUpdatingFromPattern) {
+        const raw = patternInput.value.trim();
+        const m = raw.match(/^\/(.+)\/([gimsuy]*)$/);
+        if (m) {
+          isUpdatingFromFlags = true;
+          const activeFlags = getActiveFlags();
+          if (activeFlags) {
+            patternInput.value = `/${m[1]}/${activeFlags}`;
+          } else {
+            patternInput.value = m[1]; // No flags → just the pattern
+          }
+          isUpdatingFromFlags = false;
+        }
+      }
+
+      runTest();
+    });
+  });
+
+  // ─── Preset Select ───
+  presetSelect.addEventListener('change', function() {
+    const key = this.value;
+    if (!key) return;
+
+    const preset = presets[key];
+    if (!preset) return;
+
+    // Update pattern input in /pattern/flags format
+    isUpdatingFromFlags = true;
+    patternInput.value = `/${preset.pattern}/${preset.flags}`;
+    isUpdatingFromFlags = false;
+
+    // Update flag toggles
+    setAllFlags(preset.flags);
+
+    // Reset select to placeholder
+    this.value = '';
+
+    // Focus test string if empty
+    if (!testInput.value.trim()) {
+      testInput.focus();
+    }
+
+    runTest();
+  });
+
+  // ─── Keyboard shortcut: Ctrl+Enter to re-run ───
+  document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      clearTimeout(debounceTimer);
+      runTest();
+    }
+  });
+
+  // ─── Initial run ───
+  showEmpty();
+})();
+</script>
+</body>
+</html>

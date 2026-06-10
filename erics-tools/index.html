@@ -3,93 +3,114 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>Eric's Tools - Modern, Free & Ad-Free Web Utilities Matrix</title>
-  <meta name="description" content="A curated collection of beautiful, single-purpose web tools for developers and designers. 100% ad-free, secure, and privacy-first. Built by Eric.">
-  <meta name="keywords" content="erics tools, free web utilities, ad-free dev tools, modern epoch converter, tailwind gradient generator, secure password tool">
+
+  <title>Eric's Tools — Modern, Free & Ad-Free Web Utilities</title>
+  <meta name="description" content="A curated collection of 15+ beautiful, single-purpose web tools for developers and designers. 100% ad-free, secure, and privacy-first. Built by Eric.">
+  <meta name="keywords" content="erics tools, free web utilities, ad-free dev tools, json formatter, color converter, base64, regex tester, hash generator, url encoder, uuid generator, contrast checker, jwt decoder, unit converter">
+  <meta name="author" content="Eric">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://ericstools.netlify.app/">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://ericstools.netlify.app/">
+  <meta property="og:title" content="Eric's Tools — Modern, Free & Ad-Free Web Utilities">
+  <meta property="og:description" content="A curated collection of 15+ beautiful, single-purpose web tools. No Ads. No Trackers. Fully Local.">
+  <meta property="og:image" content="https://ericstools.netlify.app/og-image.png">
+  <meta property="og:site_name" content="Eric's Tools">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://ericstools.netlify.app/">
+  <meta name="twitter:title" content="Eric's Tools — Modern, Free & Ad-Free Web Utilities">
+  <meta name="twitter:description" content="A curated collection of 15+ beautiful, single-purpose web tools. No Ads. No Trackers. Fully Local.">
+  <meta name="twitter:image" content="https://ericstools.netlify.app/og-image.png">
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23080c14'/><text x='16' y='22' text-anchor='middle' font-size='18' font-family='system-ui,sans-serif' font-weight='900' fill='%2322d3ee'>E</text></svg>">
 
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <style>
     body { background-color: #080c14; color: #f3f4f6; }
     .glass { background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.03); }
-    .card-hover:hover { border-color: rgba(34, 211, 238, 0.3); box-shadow: 0 0 30px rgba(34, 211, 238, 0.05); }
+    .card-hover { transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s; }
+    .card-hover:hover { border-color: rgba(34, 211, 238, 0.3); box-shadow: 0 0 30px rgba(34, 211, 238, 0.05); transform: translateY(-2px); }
+    .search-input { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.07); color: #f3f4f6; }
+    .search-input::placeholder { color: #4b5563; }
+    .search-input:focus { outline: none; border-color: rgba(34, 211, 238, 0.4); box-shadow: 0 0 0 3px rgba(34,211,238,0.08); }
+    .tool-card[hidden] { display: none !important; }
+    .section-hidden { display: none !important; }
+    #no-results { display: none; }
+    #no-results.visible { display: flex; }
+    .tab-btn { transition: all 0.2s; cursor: pointer; }
+    .tab-btn:hover { color: #e2e8f0; }
+    .tab-btn.active { color: #22d3ee; border-color: #22d3ee; background: rgba(34,211,238,0.08); }
+    #recent-bar { display: none; }
+    #recent-bar.has-items { display: flex; }
+    .new-badge { background: rgba(34,211,238,0.15); color: #22d3ee; font-size: 10px; padding: 1px 6px; border-radius: 3px; font-weight: 600; letter-spacing: 0.05em; margin-left: 6px; vertical-align: middle; }
+    .ext-badge { font-size: 10px; color: #6b7280; margin-left: 4px; }
+    .kbd { display: inline-block; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 1px 5px; font-size: 10px; font-family: monospace; color: #6b7280; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.3s ease-out; }
   </style>
 </head>
 <body class="min-h-screen w-screen flex flex-col justify-between items-center p-6 md:p-12">
 
-  <header class="w-full max-w-6xl text-center my-8 space-y-3">
+  <!-- ===== HEADER ===== -->
+  <header class="w-full max-w-6xl text-center my-8 space-y-4">
     <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-xs font-mono text-cyan-400">
-      ⚡ EXPANDING THE TOOL MATRIX DAILY
+      ⚡ 15+ TOOLS &amp; GROWING
     </div>
     <h1 class="text-4xl md:text-5xl font-black tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-500 bg-clip-text text-transparent">
       Eric's Tools
     </h1>
     <p class="text-gray-400 max-w-xl mx-auto text-sm md:text-base font-medium">
-      A sleek, premium collection of single-purpose utilities. <span class="text-cyan-400">No Ads. No Trackers. Fully Local.</span>
+      A sleek, premium collection of single-purpose utilities.
+      <span class="text-cyan-400">No Ads. No Trackers. Fully Local.</span>
     </p>
+
+    <!-- Search Bar -->
+    <div class="relative max-w-md mx-auto mt-2">
+      <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input
+        id="search"
+        type="search"
+        placeholder="Search tools... (press /)"
+        autocomplete="off"
+        aria-label="Search tools"
+        class="search-input w-full pl-9 pr-10 py-2.5 rounded-xl text-sm font-mono"
+      >
+      <kbd class="absolute right-3 top-1/2 -translate-y-1/2">/</kbd>
+    </div>
+
+    <!-- Category Tabs -->
+    <div id="tab-bar" class="flex flex-wrap justify-center gap-2 mt-3">
+      <button class="tab-btn active px-4 py-1.5 rounded-lg text-xs font-mono border border-transparent" data-filter="all">All</button>
+    </div>
+
+    <!-- Tool count -->
+    <p class="text-xs text-gray-600 font-mono" id="tool-count"></p>
   </header>
 
-  <main class="w-full max-w-6xl space-y-12 my-auto">
-    
-    <section class="space-y-4">
-      <div class="flex items-center gap-2 text-xs font-bold tracking-widest text-gray-500 uppercase border-b border-gray-900 pb-2">
-        🔒 Privacy & Cyber Security
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <a href="https://vaultglow.netlify.app/" target="_blank" class="glass card-hover p-6 rounded-2xl flex flex-col justify-between space-y-4 transition-all group cursor-pointer">
-          <div class="space-y-2">
-            <div class="flex justify-between items-center">
-              <span class="text-lg font-bold group-hover:text-cyan-400 transition-colors">VaultGlow</span>
-              <span class="text-xs font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Security</span>
-            </div>
-            <p class="text-xs text-gray-400 leading-relaxed">Advanced password generator running purely in local browser. Features safe character exclusion and real-time crypt strength meter.</p>
-          </div>
-          <div class="text-xs font-mono text-cyan-500 flex items-center gap-1 group-hover:translate-x-1 transition-transform">Launch Tool →</div>
-        </a>
-      </div>
-    </section>
+  <!-- ===== RECENTLY USED ===== -->
+  <div id="recent-bar" class="w-full max-w-6xl mb-6">
+    <div class="flex items-center gap-2 text-xs font-bold tracking-widest text-gray-500 uppercase border-b border-gray-900 pb-2 mb-3">
+      🕓 Recently Used
+    </div>
+    <div id="recent-items" class="flex flex-wrap gap-3"></div>
+  </div>
 
-    <section class="space-y-4">
-      <div class="flex items-center gap-2 text-xs font-bold tracking-widest text-gray-500 uppercase border-b border-gray-900 pb-2">
-        🎨 Design & Visual Utilities
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <a href="https://glowgradient.netlify.app/" target="_blank" class="glass card-hover p-6 rounded-2xl flex flex-col justify-between space-y-4 transition-all group cursor-pointer">
-          <div class="space-y-2">
-            <div class="flex justify-between items-center">
-              <span class="text-lg font-bold group-hover:text-cyan-400 transition-colors">GlowGradient</span>
-              <span class="text-xs font-mono px-2 py-0.5 rounded bg-pink-500/10 text-pink-400 border border-pink-500/20">Tailwind</span>
-            </div>
-            <p class="text-xs text-gray-400 leading-relaxed">Eliminate muddy gray mid-tones in your gradients. Create beautifully smooth, non-linear CSS code with one click.</p>
-          </div>
-          <div class="text-xs font-mono text-cyan-500 flex items-center gap-1 group-hover:translate-x-1 transition-transform">Launch Tool →</div>
-        </a>
-      </div>
-    </section>
-
-    <section class="space-y-4">
-      <div class="flex items-center gap-2 text-xs font-bold tracking-widest text-gray-500 uppercase border-b border-gray-900 pb-2">
-        💻 Developer Utilities
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <a href="https://timestampconversion.netlify.app/" target="_blank" class="glass card-hover p-6 rounded-2xl flex flex-col justify-between space-y-4 transition-all group cursor-pointer">
-          <div class="space-y-2">
-            <div class="flex justify-between items-center">
-              <span class="text-lg font-bold group-hover:text-cyan-400 transition-colors">Epoch Converter</span>
-              <span class="text-xs font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">Time</span>
-            </div>
-            <p class="text-xs text-gray-400 leading-relaxed">Instant Unix timestamp switcher. Beautiful, modern, completely ad-free interface tailored for developers' daily flow.</p>
-          </div>
-          <div class="text-xs font-mono text-cyan-500 flex items-center gap-1 group-hover:translate-x-1 transition-transform">Launch Tool →</div>
-        </a>
-      </div>
-    </section>
-
+  <!-- ===== MAIN ===== -->
+  <main class="w-full max-w-6xl space-y-12 my-auto" id="tools-container" aria-label="Tool categories">
+    <div id="no-results" class="flex-col items-center justify-center py-24 text-center gap-3">
+      <div class="text-4xl select-none">🔍</div>
+      <p class="text-gray-400 text-sm font-mono">No tools match "<span id="no-results-query"></span>"</p>
+      <p class="text-gray-600 text-xs">Try a different keyword or category</p>
+    </div>
   </main>
 
+  <!-- ===== FOOTER ===== -->
   <footer class="w-full max-w-6xl border-t border-gray-900 pt-8 mt-12 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-mono text-gray-500">
     <div>© 2026 Eric's Tools. Powered by Netlify.</div>
-    
     <div class="flex flex-col md:flex-row items-center gap-4 bg-slate-950/40 border border-gray-900 px-4 py-2 rounded-xl">
       <div class="flex items-center gap-2">
         <span class="text-gray-400">☕ Buy me a coffee via PayPal:</span>
@@ -97,6 +118,240 @@
       </div>
     </div>
   </footer>
+
+  <!-- ===== APP ===== -->
+  <script>
+    // ───────── TOOL REGISTRY ─────────
+    const TOOLS = [
+      {
+        category: "💻 Developer Utilities",
+        items: [
+          { name:"JSON Formatter",   url:"json-formatter.html",   tag:"Format",  tagColor:"blue",   desc:"Format, minify, and validate JSON with collapsible tree view. Paste, click, done.",                       addedAt:"2026-06-10" },
+          { name:"Regex Tester",     url:"regex-tester.html",     tag:"Regex",   tagColor:"violet", desc:"Real-time regex matching with capture group extraction, flags, and preset templates.",                     addedAt:"2026-06-10" },
+          { name:"Base64 Tool",      url:"base64.html",           tag:"Encode",  tagColor:"cyan",   desc:"Encode/decode Base64 text. Drag a file to get its data URI. Fully local, no upload.",                    addedAt:"2026-06-10" },
+          { name:"URL Encoder",      url:"url-encoder.html",      tag:"URL",     tagColor:"blue",   desc:"Encode and decode URL strings with parameter-by-parameter breakdown.",                                  addedAt:"2026-06-10" },
+          { name:"UUID Generator",   url:"uuid-generator.html",   tag:"UUID",    tagColor:"cyan",   desc:"Generate v4 UUIDs in bulk. One click to copy a single ID or the full batch.",                        addedAt:"2026-06-10" },
+          { name:"Epoch Converter",  url:"https://timestampconversion.netlify.app/", tag:"Time", tagColor:"amber",  desc:"Instant Unix timestamp switcher. Beautiful, modern, completely ad-free interface tailored for developers' daily flow.", external:true },
+        ],
+      },
+      {
+        category: "🎨 Design & Visual Utilities",
+        items: [
+          { name:"Color Converter",  url:"color-converter.html",  tag:"Color",   tagColor:"pink",   desc:"Convert between HEX, RGB, and HSL in real time with a live color preview swatch.",                    addedAt:"2026-06-10" },
+          { name:"Contrast Checker", url:"contrast-checker.html", tag:"A11y",    tagColor:"rose",   desc:"WCAG contrast ratio checker. Enter foreground/background and get AA/AAA pass/fail instantly.",       addedAt:"2026-06-10" },
+          { name:"Aspect Ratio",     url:"aspect-ratio.html",     tag:"Ratio",   tagColor:"pink",   desc:"Calculate width or height from an aspect ratio. Quick-select common presets like 16:9.",            addedAt:"2026-06-10" },
+          { name:"GlowGradient",     url:"https://glowgradient.netlify.app/",    tag:"Tailwind",tagColor:"pink",   desc:"Eliminate muddy gray mid-tones in your gradients. Create beautifully smooth, non-linear CSS code with one click.", external:true },
+        ],
+      },
+      {
+        category: "🔒 Privacy & Security",
+        items: [
+          { name:"Hash Generator",   url:"hash-generator.html",   tag:"Hash",    tagColor:"emerald", desc:"Compute MD5, SHA-1, SHA-256, SHA-512 hashes locally. Supports text input and file drag-and-drop.",addedAt:"2026-06-10" },
+          { name:"JWT Decoder",      url:"jwt-decoder.html",      tag:"JWT",     tagColor:"emerald", desc:"Decode JWT header and payload entirely in the browser. No data leaves your machine.",                 addedAt:"2026-06-10" },
+          { name:"VaultGlow",        url:"https://vaultglow.netlify.app/",       tag:"Security",tagColor:"emerald", desc:"Advanced password generator running purely in local browser. Features safe character exclusion and real-time crypt strength meter.", external:true },
+        ],
+      },
+      {
+        category: "🔢 Math & Conversion",
+        items: [
+          { name:"Unit Converter",   url:"unit-converter.html",   tag:"Units",   tagColor:"amber",  desc:"Convert between length, area, weight, temperature, and digital storage units in real time.",         addedAt:"2026-06-10" },
+          { name:"Number Base",      url:"number-base.html",      tag:"Base",    tagColor:"amber",  desc:"Convert numbers between decimal, binary, hexadecimal, and octal. Instant live preview.",            addedAt:"2026-06-10" },
+        ],
+      },
+    ];
+
+    // ───────── CONSTANTS ─────────
+    const TAG_COLORS = {
+      emerald:"bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+      pink:   "bg-pink-500/10 text-pink-400 border-pink-500/20",
+      amber:  "bg-amber-500/10 text-amber-400 border-amber-500/20",
+      cyan:   "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+      blue:   "bg-blue-500/10 text-blue-400 border-blue-500/20",
+      violet: "bg-violet-500/10 text-violet-400 border-violet-500/20",
+      rose:   "bg-rose-500/10 text-rose-400 border-rose-500/20",
+    };
+    const NOW = new Date();
+    const NEW_DAYS = 30;
+    const RECENT_KEY = "erics-tools-recent";
+    const MAX_RECENT = 3;
+
+    const container = document.getElementById("tools-container");
+    const noResults = document.getElementById("no-results");
+    const noResultsQuery = document.getElementById("no-results-query");
+    const toolCountEl = document.getElementById("tool-count");
+    const searchInput = document.getElementById("search");
+    const tabBar = document.getElementById("tab-bar");
+    const recentBar = document.getElementById("recent-bar");
+    const recentItems = document.getElementById("recent-items");
+
+    let totalTools = 0;
+    let allCards = [];
+    let allSections = [];
+    let activeFilter = "all";
+
+    // ───────── HELPERS ─────────
+    function isNew(addedAt) {
+      if (!addedAt) return false;
+      const d = new Date(addedAt + "T00:00:00");
+      return (NOW - d) / 86400000 <= NEW_DAYS;
+    }
+
+    function getRecent() {
+      try { return JSON.parse(localStorage.getItem(RECENT_KEY)) || []; }
+      catch(e) { return []; }
+    }
+    function saveRecent(name, url) {
+      let recents = getRecent().filter(r => r.url !== url);
+      recents.unshift({ name, url });
+      if (recents.length > MAX_RECENT) recents = recents.slice(0, MAX_RECENT);
+      try { localStorage.setItem(RECENT_KEY, JSON.stringify(recents)); } catch(e) {}
+      renderRecent();
+    }
+
+    function renderRecent() {
+      const recents = getRecent();
+      if (recents.length === 0) { recentBar.classList.remove("has-items"); return; }
+      recentBar.classList.add("has-items");
+      recentItems.innerHTML = recents.map(r => {
+        const isExt = r.url.startsWith("http");
+        return `<a href="${r.url}" ${isExt ? 'target="_blank" rel="noopener noreferrer"' : ''}
+          class="text-xs font-mono text-cyan-400 hover:text-cyan-300 bg-cyan-500/5 border border-cyan-500/15 px-3 py-1.5 rounded-lg transition-colors">
+          ${r.name} ${isExt ? '<span class="ext-badge">↗</span>' : ''}
+        </a>`;
+      }).join("");
+    }
+
+    // ───────── BUILD TABS ─────────
+    const categories = TOOLS.map(c => c.category);
+    tabBar.innerHTML = '<button class="tab-btn active px-4 py-1.5 rounded-lg text-xs font-mono border border-transparent" data-filter="all">All</button>' +
+      categories.map(c => {
+        const label = c.replace(/^[^\s]+\s/, "").replace(/&amp;/g,"&");
+        return `<button class="tab-btn px-4 py-1.5 rounded-lg text-xs font-mono border border-transparent text-gray-400" data-filter="${c.toLowerCase()}">${label}</button>`;
+      }).join("");
+
+    tabBar.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        tabBar.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        activeFilter = btn.dataset.filter;
+        applyFilters();
+      });
+    });
+
+    // ───────── BUILD CARDS ─────────
+    TOOLS.forEach((cat) => {
+      totalTools += cat.items.length;
+      const section = document.createElement("section");
+      section.className = "space-y-4";
+      section.dataset.category = cat.category.toLowerCase();
+
+      const header = document.createElement("div");
+      header.className = "flex items-center gap-2 text-xs font-bold tracking-widest text-gray-500 uppercase border-b border-gray-900 pb-2";
+      header.textContent = cat.category;
+
+      const grid = document.createElement("div");
+      grid.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6";
+
+      cat.items.forEach((tool) => {
+        const tagClasses = TAG_COLORS[tool.tagColor] || TAG_COLORS.cyan;
+        const isExt = tool.external || tool.url.startsWith("http");
+        const showNew = isNew(tool.addedAt);
+
+        const card = document.createElement("a");
+        card.href = tool.url;
+        if (isExt) { card.target = "_blank"; card.rel = "noopener noreferrer"; }
+        card.className = "tool-card glass card-hover p-6 rounded-2xl flex flex-col justify-between space-y-4 group cursor-pointer fade-in";
+        card.dataset.name = tool.name.toLowerCase();
+        card.dataset.desc = tool.desc.toLowerCase();
+        card.dataset.tag  = tool.tag.toLowerCase();
+        card.dataset.category = cat.category.toLowerCase();
+        card.setAttribute("aria-label", `${tool.name} — ${tool.desc}`);
+
+        card.innerHTML = `
+          <div class="space-y-2">
+            <div class="flex justify-between items-center">
+              <span class="text-lg font-bold group-hover:text-cyan-400 transition-colors">
+                ${tool.name}${showNew ? '<span class="new-badge">NEW</span>' : ''}
+                ${isExt ? '<span class="ext-badge">↗</span>' : ''}
+              </span>
+              <span class="text-xs font-mono px-2 py-0.5 rounded border ${tagClasses}">${tool.tag}</span>
+            </div>
+            <p class="text-xs text-gray-400 leading-relaxed">${tool.desc}</p>
+          </div>
+          <div class="text-xs font-mono text-cyan-500 flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+            ${isExt ? 'Launch Tool →' : 'Open Tool →'}
+          </div>
+        `;
+
+        card.addEventListener("click", () => {
+          saveRecent(tool.name, tool.url);
+        });
+
+        grid.appendChild(card);
+        allCards.push(card);
+      });
+
+      section.appendChild(header);
+      section.appendChild(grid);
+      container.insertBefore(section, noResults);
+      allSections.push(section);
+    });
+
+    toolCountEl.textContent = `${totalTools} tools available`;
+    renderRecent();
+
+    // ───────── FILTERS ─────────
+    function applyFilters() {
+      const q = searchInput.value.trim().toLowerCase();
+      let visible = 0;
+
+      allCards.forEach(card => {
+        const cat = card.dataset.category;
+        const categoryMatch = activeFilter === "all" || cat === activeFilter;
+        const searchMatch = !q || card.dataset.name.includes(q) || card.dataset.desc.includes(q) || card.dataset.tag.includes(q);
+        const show = categoryMatch && searchMatch;
+        card.hidden = !show;
+        if (show) visible++;
+      });
+
+      allSections.forEach(sec => {
+        const cards = sec.querySelectorAll(".tool-card");
+        let sv = 0;
+        cards.forEach(c => { if (!c.hidden) sv++; });
+        sec.classList.toggle("section-hidden", sv === 0);
+      });
+
+      noResults.classList.toggle("visible", visible === 0 && (q || activeFilter !== "all"));
+      noResultsQuery.textContent = q || activeFilter;
+
+      if (q && activeFilter !== "all") {
+        toolCountEl.textContent = visible ? `${visible} result${visible!==1?"s":""} for "${q}" in ${activeFilter}` : "No results";
+      } else if (q) {
+        toolCountEl.textContent = visible ? `${visible} result${visible!==1?"s":""} for "${q}"` : "No results";
+      } else if (activeFilter !== "all") {
+        toolCountEl.textContent = `${visible} tool${visible!==1?"s":""} in ${activeFilter}`;
+      } else {
+        toolCountEl.textContent = `${totalTools} tools available`;
+      }
+    }
+
+    // ───────── SEARCH ─────────
+    searchInput.addEventListener("input", applyFilters);
+
+    // ───────── KEYBOARD ─────────
+    document.addEventListener("keydown", e => {
+      if (e.key === "/" && document.activeElement !== searchInput && document.activeElement.tagName !== "INPUT" && document.activeElement.tagName !== "TEXTAREA") {
+        e.preventDefault();
+        searchInput.focus();
+        searchInput.select();
+      }
+      if (e.key === "Escape" && document.activeElement === searchInput) {
+        searchInput.value = "";
+        searchInput.blur();
+        applyFilters();
+      }
+    });
+  </script>
 
 </body>
 </html>

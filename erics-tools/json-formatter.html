@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Free online JSON formatter, validator, and minifier with syntax highlighting and collapsible tree view. No ads, fully local.">
+  <title>JSON Formatter — Eric's Tools</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23080c14'/><text x='16' y='22' text-anchor='middle' font-size='18' font-family='system-ui,sans-serif' font-weight='900' fill='%2322d3ee'>J</text></svg>">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    body {
+      background-color: #080c14;
+      color: #f3f4f6;
+      min-height: 100vh;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+    .glass {
+      background: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
+    }
+    .btn-cyan {
+      background: rgba(34, 211, 238, 0.1);
+      border: 1px solid rgba(34, 211, 238, 0.2);
+      color: #22d3ee;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .btn-cyan:hover {
+      background: rgba(34, 211, 238, 0.2);
+      border-color: rgba(34, 211, 238, 0.4);
+      box-shadow: 0 0 16px rgba(34, 211, 238, 0.1);
+    }
+    .btn-cyan:active {
+      transform: scale(0.97);
+    }
+    .btn-gray {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      color: #9ca3af;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .btn-gray:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.12);
+      color: #e5e7eb;
+    }
+    .btn-red {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      color: #f87171;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .btn-red:hover {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: rgba(239, 68, 68, 0.4);
+    }
+
+    /* Input textarea */
+    #jsonInput {
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      tab-size: 2;
+      background: rgba(8, 12, 20, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      color: #e5e7eb;
+      resize: vertical;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    #jsonInput:focus {
+      outline: none;
+      border-color: rgba(34, 211, 238, 0.4);
+      box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.05);
+    }
+    #jsonInput::placeholder {
+      color: #374151;
+    }
+
+    /* Output area */
+    #outputWrapper {
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      min-height: 200px;
+      max-height: 600px;
+      overflow: auto;
+      background: rgba(8, 12, 20, 0.4);
+      border-radius: 8px;
+      scroll-behavior: smooth;
+    }
+    #outputWrapper::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    #outputWrapper::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    #outputWrapper::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
+    }
+    #outputWrapper::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    /* JSON rows */
+    .json-row {
+      display: flex;
+      white-space: pre;
+      min-height: 1.7em;
+    }
+    .json-row.hidden-row {
+      display: none;
+    }
+    .json-lineno {
+      display: inline-block;
+      min-width: 56px;
+      text-align: right;
+      padding-right: 16px;
+      color: #1e293b;
+      user-select: none;
+      flex-shrink: 0;
+      border-right: 1px solid rgba(255, 255, 255, 0.03);
+      margin-right: 12px;
+    }
+    .json-content {
+      flex: 1;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      min-width: 0;
+    }
+
+    /* Syntax highlighting */
+    .json-key { color: #22d3ee; }
+    .json-string { color: #4ade80; }
+    .json-number { color: #fbbf24; }
+    .json-boolean { color: #a78bfa; }
+    .json-null { color: #a78bfa; }
+    .json-bracket { color: #64748b; }
+    .json-colon { color: #64748b; }
+    .json-comma { color: #64748b; }
+
+    /* Toggle button */
+    .json-toggle {
+      display: inline-block;
+      width: 14px;
+      color: #475569;
+      cursor: pointer;
+      user-select: none;
+      transition: color 0.15s, transform 0.15s;
+      text-align: center;
+      font-size: 10px;
+      vertical-align: middle;
+      margin-right: 2px;
+    }
+    .json-toggle:hover {
+      color: #22d3ee;
+    }
+    .json-toggle.collapsed {
+      /* rotation inline via JS or text swap */;
+    }
+
+    /* Collapsed summary */
+    .json-summary {
+      color: #475569;
+      font-style: italic;
+      margin-left: 2px;
+    }
+
+    /* Copied flash */
+    @keyframes copiedFlash {
+      0% { color: #22d3ee; }
+      50% { color: #4ade80; }
+      100% { color: #22d3ee; }
+    }
+    .copied-flash {
+      animation: copiedFlash 0.6s ease;
+    }
+
+    /* Error box */
+    #errorBox {
+      display: none;
+    }
+    #errorBox.visible {
+      display: block;
+    }
+
+    /* Empty state */
+    #emptyState {
+      color: #334155;
+    }
+
+    /* Success state for validate */
+    #validateResult {
+      display: none;
+    }
+    #validateResult.show {
+      display: flex;
+    }
+
+    /* Action feedback */
+    #actionFeedback {
+      transition: opacity 0.3s;
+    }
+  </style>
+</head>
+<body class="min-h-screen w-screen flex flex-col items-center p-4 md:p-8">
+
+  <!-- ===== HEADER ===== -->
+  <header class="w-full max-w-7xl mb-6">
+    <a href="index.html" class="inline-flex items-center gap-1.5 text-cyan-400 hover:text-cyan-300 transition-colors text-sm font-medium mb-4 group">
+      <svg class="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M19 12H5m7-7-7 7 7 7"/>
+      </svg>
+      Back to Eric's Tools
+    </a>
+    <h1 class="text-3xl md:text-4xl font-black tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-500 bg-clip-text text-transparent">
+      JSON Formatter
+    </h1>
+    <p class="text-gray-500 text-sm mt-1">Format, validate, and minify JSON with syntax highlighting and collapsible tree view</p>
+  </header>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="w-full max-w-7xl flex-1">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full">
+
+      <!-- LEFT PANEL: Input -->
+      <div class="glass p-4 flex flex-col min-h-0">
+        <label for="jsonInput" class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Input</label>
+        <textarea
+          id="jsonInput"
+          class="w-full flex-1 p-4 rounded-lg min-h-[320px]"
+          placeholder='Paste your JSON here...
+
+Example:
+{
+  "name": "Eric",
+  "age": 30,
+  "skills": ["HTML", "CSS", "JavaScript"],
+  "active": true,
+  "metadata": null
+}'
+          spellcheck="false"
+          aria-label="JSON input"
+        ></textarea>
+
+        <!-- Action buttons -->
+        <div class="flex flex-wrap gap-2 mt-3">
+          <button id="btnFormat" class="btn-cyan px-5 py-2 rounded-lg text-sm font-semibold tracking-wide">
+            <span class="flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M4 6h16M4 12h16m-7 6h7"/>
+              </svg>
+              Format
+            </span>
+          </button>
+          <button id="btnMinify" class="btn-gray px-4 py-2 rounded-lg text-sm font-semibold tracking-wide">
+            <span class="flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M4 6h16M4 10h16m-7 4h7"/>
+              </svg>
+              Minify
+            </span>
+          </button>
+          <button id="btnValidate" class="btn-gray px-4 py-2 rounded-lg text-sm font-semibold tracking-wide">
+            <span class="flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Validate
+            </span>
+          </button>
+          <button id="btnClear" class="btn-red px-4 py-2 rounded-lg text-sm font-semibold tracking-wide ml-auto">
+            <span class="flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+              Clear
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <!-- RIGHT PANEL: Output -->
+      <div class="glass p-4 flex flex-col min-h-0">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Output</span>
+          <div class="flex items-center gap-2">
+            <span id="actionFeedback" class="text-xs text-cyan-400 opacity-0 transition-opacity">Copied!</span>
+            <button id="btnCopy" class="btn-cyan px-4 py-1.5 rounded-lg text-xs font-semibold tracking-wide" disabled>
+              <span class="flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                </svg>
+                Copy
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Error box -->
+        <div id="errorBox" class="mb-3 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-sm">
+          <div class="flex items-start gap-2">
+            <svg class="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/>
+            </svg>
+            <div>
+              <span class="text-red-400 font-semibold">Invalid JSON</span>
+              <p id="errorMessage" class="text-red-300 mt-0.5"></p>
+              <pre id="errorSnippet" class="text-gray-500 mt-1 text-xs font-mono overflow-x-auto"></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Validate success -->
+        <div id="validateResult" class="mb-3 p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-sm">
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span class="text-green-400 font-semibold">Valid JSON</span>
+          </div>
+        </div>
+
+        <!-- Output area -->
+        <div id="outputWrapper" class="flex-1 rounded-lg border border-white/5 p-3 min-h-[300px]">
+          <div id="emptyState" class="flex flex-col items-center justify-center h-full text-center">
+            <svg class="w-12 h-12 mb-3 opacity-20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path d="M4 6h16M4 12h16m-7 6h7"/>
+            </svg>
+            <span class="text-sm">Formatted JSON will appear here</span>
+            <span class="text-xs mt-1 opacity-60">Paste JSON &amp; click <strong class="text-cyan-400">Format</strong> or press <kbd class="px-1.5 py-0.5 rounded bg-white/5 text-xs">Ctrl+Enter</kbd></span>
+          </div>
+          <div id="outputContent" class="hidden"></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="w-full max-w-7xl text-center mt-8 pb-4">
+    <p class="text-gray-600 text-xs">100% client-side — your data never leaves your browser.</p>
+  </footer>
+
+  <script>
+    (function () {
+      // ─── DOM refs ──────────────────────────────────
+      const jsonInput = document.getElementById('jsonInput');
+      const outputWrapper = document.getElementById('outputWrapper');
+      const outputContent = document.getElementById('outputContent');
+      const emptyState = document.getElementById('emptyState');
+      const errorBox = document.getElementById('errorBox');
+      const errorMessage = document.getElementById('errorMessage');
+      const errorSnippet = document.getElementById('errorSnippet');
+      const validateResult = document.getElementById('validateResult');
+      const btnFormat = document.getElementById('btnFormat');
+      const btnMinify = document.getElementById('btnMinify');
+      const btnValidate = document.getElementById('btnValidate');
+      const btnCopy = document.getElementById('btnCopy');
+      const btnClear = document.getElementById('btnClear');
+      const actionFeedback = document.getElementById('actionFeedback');
+
+      // ─── State ─────────────────────────────────────
+      let formattedText = '';  // plain text for copy
+      let outputMode = '';     // 'tree' | 'minified'
+
+      // ─── Utilities ─────────────────────────────────
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
+      }
+
+      function showFeedback(msg) {
+        actionFeedback.textContent = msg;
+        actionFeedback.style.opacity = '1';
+        actionFeedback.classList.add('copied-flash');
+        setTimeout(() => {
+          actionFeedback.style.opacity = '0';
+          actionFeedback.classList.remove('copied-flash');
+        }, 1200);
+      }
+
+      // ─── JSON parsing with position info ──────────
+      function tryParseJSON(text) {
+        try {
+          const parsed = JSON.parse(text);
+          return { success: true, data: parsed };
+        } catch (e) {
+          const message = e.message || 'Unknown parsing error';
+          // Extract position from error message (handles Chrome, Firefox, Safari, Edge)
+          let position = null;
+          const posMatch =
+            message.match(/position\s*(\d+)/i) ||
+            message.match(/column\s*(\d+)/i);
+          if (posMatch) {
+            position = parseInt(posMatch[1], 10);
+          }
+          return { success: false, message, position, rawText: text };
+        }
+      }
+
+      // ─── Generate line objects from parsed JSON ────
+      function generateLines(obj, depth) {
+        depth = depth || 0;
+        const lines = [];
+
+        if (Array.isArray(obj)) {
+          if (obj.length === 0) {
+            lines.push({ depth, type: 'empty', content: '[]' });
+            return lines;
+          }
+          lines.push({
+            depth,
+            type: 'open',
+            content: '[',
+            childCount: obj.length,
+            collapsible: true,
+            collapsed: false
+          });
+          for (let i = 0; i < obj.length; i++) {
+            const childLines = generateLines(obj[i], depth + 1);
+            if (childLines.length > 0) {
+              childLines[0].key = null; // array items have no key
+              if (i < obj.length - 1) {
+                childLines[childLines.length - 1].comma = true;
+              }
+            }
+            lines.push(...childLines);
+          }
+          lines.push({ depth, type: 'close', content: ']' });
+          return lines;
+        }
+
+        if (obj !== null && typeof obj === 'object') {
+          const keys = Object.keys(obj);
+          if (keys.length === 0) {
+            lines.push({ depth, type: 'empty', content: '{}' });
+            return lines;
+          }
+          lines.push({
+            depth,
+            type: 'open',
+            content: '{',
+            childCount: keys.length,
+            collapsible: true,
+            collapsed: false
+          });
+          for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const childLines = generateLines(obj[key], depth + 1);
+            if (childLines.length > 0) {
+              childLines[0].key = key;
+              if (i < keys.length - 1) {
+                childLines[childLines.length - 1].comma = true;
+              }
+            }
+            lines.push(...childLines);
+          }
+          lines.push({ depth, type: 'close', content: '}' });
+          return lines;
+        }
+
+        // Primitive value
+        let cssClass = '';
+        let content = '';
+        if (obj === null) {
+          cssClass = 'json-null';
+          content = 'null';
+        } else if (typeof obj === 'boolean') {
+          cssClass = 'json-boolean';
+          content = String(obj);
+        } else if (typeof obj === 'number') {
+          cssClass = 'json-number';
+          content = String(obj);
+        } else {
+          cssClass = 'json-string';
+          content = JSON.stringify(obj); // proper escaping including unicode
+        }
+
+        lines.push({ depth, type: 'value', content, cssClass, key: null });
+        return lines;
+      }
+
+      // Compute collapse ranges (which lines to hide when a node is collapsed)
+      function computeCollapseRanges(lines) {
+        const stack = [];
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          if (line.type === 'open' && line.collapsible) {
+            stack.push(i);
+          } else if (line.type === 'close') {
+            const openIdx = stack.pop();
+            if (openIdx !== undefined) {
+              lines[openIdx].collapseStart = openIdx;
+              lines[openIdx].collapseEnd = i;
+            }
+          }
+        }
+      }
+
+      // ─── Render tree output ─────────────────────────
+      function renderTreeOutput(parsed) {
+        const lines = generateLines(parsed);
+        computeCollapseRanges(lines);
+
+        // Build HTML
+        let html = '';
+        let lineNum = 0;
+
+        function pushRow(contentHTML, lineObj) {
+          lineNum++;
+          const isHidden = lineObj && lineObj.hidden ? ' hidden-row' : '';
+          html += '<div class="json-row' + isHidden + '" data-line="' + (lineNum) + '"';
+          if (lineObj && lineObj.collapseStart !== undefined) {
+            html += ' data-collapse-start="' + lineObj.collapseStart + '"';
+            html += ' data-collapse-end="' + lineObj.collapseEnd + '"';
+          }
+          html += '>';
+          html += '<span class="json-lineno">' + lineNum + '</span>';
+          html += '<span class="json-content">' + contentHTML + '</span>';
+          html += '</div>';
+        }
+
+        lines.forEach((line, idx) => {
+          const indent = '  '.repeat(line.depth);
+          let content = '';
+
+          if (line.type === 'empty') {
+            content += '<span class="json-indent">' + escapeHtml(indent) + '</span>';
+            content += '<span class="json-bracket">' + escapeHtml(line.content) + '</span>';
+          } else if (line.type === 'open') {
+            content += '<span class="json-indent">' + escapeHtml(indent) + '</span>';
+            if (line.key) {
+              content += '<span class="json-key">"' + escapeHtml(line.key) + '"</span>';
+              content += '<span class="json-colon">: </span>';
+            }
+            if (line.collapsible) {
+              content += '<span class="json-toggle" data-target="' + idx + '" role="button" tabindex="0" aria-label="Toggle collapse">&#9660;</span>';
+            }
+            content += '<span class="json-bracket">' + escapeHtml(line.content) + '</span>';
+            if (line.collapsible) {
+              const closeChar = line.content === '{' ? '}' : ']';
+              content += '<span class="json-summary" style="display:none"> <span class="json-bracket">...</span> ' + escapeHtml(line.childCount) + ' items <span class="json-bracket">' + closeChar + '</span></span>';
+            }
+          } else if (line.type === 'close') {
+            content += '<span class="json-indent">' + escapeHtml(indent) + '</span>';
+            content += '<span class="json-bracket">' + escapeHtml(line.content) + '</span>';
+          } else if (line.type === 'value') {
+            content += '<span class="json-indent">' + escapeHtml(indent) + '</span>';
+            if (line.key) {
+              content += '<span class="json-key">"' + escapeHtml(line.key) + '"</span>';
+              content += '<span class="json-colon">: </span>';
+            }
+            content += '<span class="' + line.cssClass + '">' + escapeHtml(line.content) + '</span>';
+          }
+
+          if (line.comma) {
+            content += '<span class="json-comma">,</span>';
+          }
+
+          line._index = idx;
+          pushRow(content, line);
+        });
+
+        // Store lines globally for toggle access
+        window._jsonLines = lines;
+
+        return html;
+      }
+
+      // ─── Render minified output ────────────────────
+      function renderMinifiedOutput(text) {
+        return '<div class="json-row">' +
+          '<span class="json-lineno">1</span>' +
+          '<span class="json-content"><span class="json-string">' + escapeHtml(text) + '</span></span>' +
+          '</div>';
+      }
+
+      // ─── Check if a line is hidden by another collapsed node ─
+      function isHiddenByOtherCollapsed(lineIdx, exceptIdx) {
+        const lines = window._jsonLines;
+        if (!lines) return false;
+        for (let j = 0; j < lines.length; j++) {
+          if (j === exceptIdx) continue;
+          if (lines[j].collapsed && lines[j].collapseStart !== undefined) {
+            if (lineIdx > lines[j].collapseStart && lineIdx <= lines[j].collapseEnd) {
+              return true;
+            }
+          }
+        }
+        return false;
+      }
+
+      // ─── Toggle collapse/expand ────────────────────
+      function toggleNode(lineIdx) {
+        const lines = window._jsonLines;
+        if (!lines) return;
+        const line = lines[lineIdx];
+        if (!line || line.collapseStart === undefined) return;
+
+        const start = line.collapseStart;
+        const end = line.collapseEnd;
+
+        line.collapsed = !line.collapsed;
+
+        // Update hidden state on affected lines
+        if (line.collapsed) {
+          // Collapse: hide all descendants
+          for (let i = start + 1; i <= end; i++) {
+            lines[i].hidden = true;
+          }
+        } else {
+          // Expand: show descendants that are not hidden by another collapsed node
+          for (let i = start + 1; i <= end; i++) {
+            if (!isHiddenByOtherCollapsed(i, lineIdx)) {
+              lines[i].hidden = false;
+            }
+          }
+        }
+
+        // Update DOM
+        const rows = outputContent.querySelectorAll('.json-row');
+
+        for (let i = start; i <= end && i < rows.length; i++) {
+          const row = rows[i];
+          if (!row) continue;
+          const lineObj = lines[i];
+
+          if (i === start) {
+            // Update toggle icon and summary
+            const toggle = row.querySelector('.json-toggle');
+            const summary = row.querySelector('.json-summary');
+            if (toggle) {
+              toggle.innerHTML = lineObj.collapsed ? '&#9654;' : '&#9660;';
+            }
+            if (summary) {
+              summary.style.display = lineObj.collapsed ? 'inline' : 'none';
+            }
+          } else {
+            // Show/hide child rows
+            if (lineObj.hidden) {
+              row.classList.add('hidden-row');
+            } else {
+              row.classList.remove('hidden-row');
+            }
+          }
+        }
+
+        // Recalculate line numbers
+        recalcLineNumbers(outputContent);
+      }
+
+      function recalcLineNumbers(wrapper) {
+        const rows = wrapper.querySelectorAll('.json-row');
+        let visibleNum = 0;
+        rows.forEach(row => {
+          if (!row.classList.contains('hidden-row')) {
+            visibleNum++;
+            const lineNo = row.querySelector('.json-lineno');
+            if (lineNo) {
+              lineNo.textContent = visibleNum;
+            }
+          }
+        });
+      }
+
+      // ─── Show output ───────────────────────────────
+      function showOutput(html) {
+        errorBox.classList.remove('visible');
+        validateResult.classList.remove('show');
+        emptyState.classList.add('hidden');
+        outputContent.innerHTML = html;
+        outputContent.classList.remove('hidden');
+        btnCopy.disabled = false;
+      }
+
+      function showError(parsed, rawText) {
+        outputContent.classList.add('hidden');
+        emptyState.classList.add('hidden');
+        validateResult.classList.remove('show');
+        errorBox.classList.add('visible');
+        btnCopy.disabled = true;
+
+        errorMessage.textContent = parsed.message;
+
+        // Show context snippet around error position
+        if (parsed.position !== null && rawText) {
+          const pos = parsed.position;
+          const start = Math.max(0, pos - 40);
+          const end = Math.min(rawText.length, pos + 40);
+          let snippet = rawText.substring(start, end);
+          const marker = pos - start;
+          if (marker >= 0 && marker < snippet.length) {
+            // Truncation indicators
+            let prefix = start > 0 ? '…' : '';
+            let suffix = end < rawText.length ? '…' : '';
+            snippet = prefix + escapeHtml(snippet.substring(0, marker)) +
+              '<span class="text-red-400 underline decoration-red-400">' +
+              escapeHtml(snippet.charAt(marker)) +
+              '</span>' +
+              escapeHtml(snippet.substring(marker + 1)) + suffix;
+          } else {
+            snippet = escapeHtml(snippet);
+          }
+          errorSnippet.innerHTML = 'Near: ' + snippet;
+        } else {
+          errorSnippet.textContent = '';
+        }
+      }
+
+      function showValidateSuccess() {
+        errorBox.classList.remove('visible');
+        outputContent.classList.add('hidden');
+        emptyState.classList.add('hidden');
+        validateResult.classList.add('show');
+        btnCopy.disabled = true;
+      }
+
+      function showEmpty() {
+        errorBox.classList.remove('visible');
+        validateResult.classList.remove('show');
+        outputContent.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        btnCopy.disabled = true;
+      }
+
+      // ─── Actions ────────────────────────────────────
+      function doFormat() {
+        const text = jsonInput.value.trim();
+        if (!text) {
+          showEmpty();
+          return;
+        }
+
+        const result = tryParseJSON(text);
+        if (!result.success) {
+          showError(result, result.rawText);
+          return;
+        }
+
+        outputMode = 'tree';
+        formattedText = JSON.stringify(result.data, null, 2);
+        const html = renderTreeOutput(result.data);
+        showOutput(html);
+
+        // Scroll to top of output
+        outputWrapper.scrollTop = 0;
+      }
+
+      function doMinify() {
+        const text = jsonInput.value.trim();
+        if (!text) {
+          showEmpty();
+          return;
+        }
+
+        const result = tryParseJSON(text);
+        if (!result.success) {
+          showError(result, result.rawText);
+          return;
+        }
+
+        outputMode = 'minified';
+        formattedText = JSON.stringify(result.data);
+        const html = renderMinifiedOutput(formattedText);
+        showOutput(html);
+        outputWrapper.scrollTop = 0;
+      }
+
+      function doValidate() {
+        const text = jsonInput.value.trim();
+        if (!text) {
+          showEmpty();
+          return;
+        }
+
+        const result = tryParseJSON(text);
+        if (!result.success) {
+          showError(result, result.rawText);
+          return;
+        }
+
+        showValidateSuccess();
+      }
+
+      function doCopy() {
+        if (!formattedText) return;
+        navigator.clipboard.writeText(formattedText).then(() => {
+          showFeedback('Copied!');
+        }).catch(() => {
+          // Fallback for older browsers
+          const ta = document.createElement('textarea');
+          ta.value = formattedText;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          showFeedback('Copied!');
+        });
+      }
+
+      function doClear() {
+        jsonInput.value = '';
+        formattedText = '';
+        window._jsonLines = null;
+        showEmpty();
+        jsonInput.focus();
+      }
+
+      // ─── Keyboard shortcut ──────────────────────────
+      jsonInput.addEventListener('keydown', function (e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+          e.preventDefault();
+          doFormat();
+        }
+      });
+
+      // ─── Button events ──────────────────────────────
+      btnFormat.addEventListener('click', doFormat);
+      btnMinify.addEventListener('click', doMinify);
+      btnValidate.addEventListener('click', doValidate);
+      btnCopy.addEventListener('click', doCopy);
+      btnClear.addEventListener('click', doClear);
+
+      // ─── Delegate toggle clicks on output ───────────
+      outputContent.addEventListener('click', function (e) {
+        const toggle = e.target.closest('.json-toggle');
+        if (!toggle) return;
+        const targetIdx = parseInt(toggle.getAttribute('data-target'), 10);
+        if (!isNaN(targetIdx)) {
+          toggleNode(targetIdx);
+        }
+      });
+
+      // Keyboard support for toggles
+      outputContent.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          const toggle = e.target.closest('.json-toggle');
+          if (toggle) {
+            e.preventDefault();
+            toggle.click();
+          }
+        }
+      });
+
+      // ─── Initial focus ──────────────────────────────
+      jsonInput.focus();
+    })();
+  </script>
+</body>
+</html>

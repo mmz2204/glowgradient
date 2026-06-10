@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aspect Ratio Calculator — Eric's Tools</title>
+  <meta name="description" content="Calculate width or height from aspect ratio. Quick-select common presets.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23080c14'/><text x='16' y='22' text-anchor='middle' font-size='16' font-family='system-ui,sans-serif' font-weight='900' fill='%2322d3ee'>A</text></svg>">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    body{background:#080c14;color:#f3f4f6}
+    .glass{background:rgba(15,23,42,0.4);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.03)}
+    .input-field{background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.07);color:#f3f4f6;font-family:monospace;font-size:16px}
+    .input-field:focus{outline:none;border-color:rgba(34,211,238,0.4);box-shadow:0 0 0 3px rgba(34,211,238,0.08)}
+    .preset-btn{background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.07);color:#9ca3af;font-family:monospace;font-size:12px;padding:8px 14px;border-radius:10px;cursor:pointer;transition:all 0.2s;text-align:center}
+    .preset-btn:hover{border-color:rgba(34,211,238,0.4);color:#22d3ee}
+    .preset-btn.active{border-color:#22d3ee;color:#22d3ee;background:rgba(34,211,238,0.08)}
+    .preview-box{border:2px dashed rgba(255,255,255,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;transition:all 0.3s}
+  </style>
+</head>
+<body class="min-h-screen w-screen flex flex-col items-center p-6 md:p-12">
+
+  <header class="w-full max-w-2xl mb-8">
+    <a href="index.html" class="text-xs font-mono text-cyan-400 hover:text-cyan-300">← Back to Eric's Tools</a>
+    <h1 class="text-3xl md:text-4xl font-black mt-4 tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-500 bg-clip-text text-transparent">Aspect Ratio Calculator</h1>
+    <p class="text-gray-400 text-sm mt-2">Calculate dimensions from aspect ratios. Quick presets for common formats.</p>
+  </header>
+
+  <main class="w-full max-w-2xl space-y-6">
+
+    <!-- Ratio display -->
+    <div class="glass rounded-2xl p-6 text-center">
+      <p class="text-xs font-mono text-gray-400 mb-1">Current Ratio</p>
+      <p class="text-4xl font-black text-cyan-400"><span id="ratio-w">16</span>:<span id="ratio-h">9</span></p>
+    </div>
+
+    <!-- Presets -->
+    <div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
+      <button class="preset-btn active" onclick="setRatio(16,9,this)">16:9</button>
+      <button class="preset-btn" onclick="setRatio(4,3,this)">4:3</button>
+      <button class="preset-btn" onclick="setRatio(1,1,this)">1:1</button>
+      <button class="preset-btn" onclick="setRatio(3,2,this)">3:2</button>
+      <button class="preset-btn" onclick="setRatio(21,9,this)">21:9</button>
+      <button class="preset-btn" onclick="setRatio(9,16,this)">9:16</button>
+      <button class="preset-btn" onclick="setRatio(2,3,this)">2:3</button>
+      <button class="preset-btn" onclick="setRatio(5,4,this)">5:4</button>
+      <button class="preset-btn" onclick="setRatio(16,10,this)">16:10</button>
+      <button class="preset-btn" onclick="setRatio(32,9,this)">32:9</button>
+    </div>
+
+    <!-- Custom ratio -->
+    <div class="flex gap-2 items-center justify-center">
+      <input id="custom-w" type="number" min="1" value="16" class="input-field w-20 p-2 rounded-lg text-center" oninput="customRatio()">
+      <span class="text-gray-400 font-mono">:</span>
+      <input id="custom-h" type="number" min="1" value="9" class="input-field w-20 p-2 rounded-lg text-center" oninput="customRatio()">
+    </div>
+
+    <!-- Calculator -->
+    <div class="glass rounded-2xl p-6 space-y-4">
+      <p class="text-xs font-mono text-gray-400">Calculate: given one dimension, find the other</p>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="text-xs font-mono text-gray-400 mb-1 block">Width (px)</label>
+          <input id="width" type="number" min="1" value="1920" class="input-field w-full p-2.5 rounded-lg" oninput="calcFromWidth()">
+        </div>
+        <div>
+          <label class="text-xs font-mono text-gray-400 mb-1 block">Height (px)</label>
+          <input id="height" type="number" min="1" value="1080" class="input-field w-full p-2.5 rounded-lg" oninput="calcFromHeight()">
+        </div>
+      </div>
+    </div>
+
+    <!-- Visual preview -->
+    <div class="glass rounded-2xl p-6">
+      <p class="text-xs font-mono text-gray-400 mb-3">Preview</p>
+      <div class="flex justify-center">
+        <div id="preview" class="preview-box" style="width:280px;height:157.5px">
+          <span id="preview-label" class="text-xs font-mono text-gray-600">1920 × 1080</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Common resolutions -->
+    <div class="glass rounded-2xl p-5">
+      <p class="text-xs font-mono text-gray-400 mb-3">Common Resolutions (16:9)</p>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <button class="text-xs font-mono text-gray-500 hover:text-cyan-400 bg-transparent border border-gray-800 hover:border-cyan-500/30 p-2 rounded-lg transition-colors" onclick="setDims(640,360)">360p</button>
+        <button class="text-xs font-mono text-gray-500 hover:text-cyan-400 bg-transparent border border-gray-800 hover:border-cyan-500/30 p-2 rounded-lg transition-colors" onclick="setDims(1280,720)">720p</button>
+        <button class="text-xs font-mono text-gray-500 hover:text-cyan-400 bg-transparent border border-gray-800 hover:border-cyan-500/30 p-2 rounded-lg transition-colors" onclick="setDims(1920,1080)">1080p</button>
+        <button class="text-xs font-mono text-gray-500 hover:text-cyan-400 bg-transparent border border-gray-800 hover:border-cyan-500/30 p-2 rounded-lg transition-colors" onclick="setDims(3840,2160)">4K</button>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    let rw = 16, rh = 9;
+
+    function setRatio(w, h, btn) {
+      rw = w; rh = h;
+      document.getElementById("ratio-w").textContent = w;
+      document.getElementById("ratio-h").textContent = h;
+      document.getElementById("custom-w").value = w;
+      document.getElementById("custom-h").value = h;
+      document.querySelectorAll(".preset-btn").forEach(b => b.classList.remove("active"));
+      if (btn) btn.classList.add("active");
+      calcFromWidth();
+    }
+
+    function customRatio() {
+      const w = parseInt(document.getElementById("custom-w").value);
+      const h = parseInt(document.getElementById("custom-h").value);
+      if (w > 0 && h > 0) {
+        rw = w; rh = h;
+        document.getElementById("ratio-w").textContent = w;
+        document.getElementById("ratio-h").textContent = h;
+        document.querySelectorAll(".preset-btn").forEach(b => b.classList.remove("active"));
+        calcFromWidth();
+      }
+    }
+
+    function calcFromWidth() {
+      const w = parseInt(document.getElementById("width").value);
+      if (w > 0) {
+        const h = Math.round(w * rh / rw);
+        document.getElementById("height").value = h;
+        updatePreview(w, h);
+      }
+    }
+
+    function calcFromHeight() {
+      const h = parseInt(document.getElementById("height").value);
+      if (h > 0) {
+        const w = Math.round(h * rw / rh);
+        document.getElementById("width").value = w;
+        updatePreview(w, h);
+      }
+    }
+
+    function setDims(w, h) {
+      document.getElementById("width").value = w;
+      document.getElementById("height").value = h;
+      updatePreview(w, h);
+    }
+
+    function updatePreview(w, h) {
+      const maxW = 280, maxH = 200;
+      let pw = w, ph = h;
+      if (pw > maxW) { ph = Math.round(ph * maxW / pw); pw = maxW; }
+      if (ph > maxH) { pw = Math.round(pw * maxH / ph); ph = maxH; }
+      document.getElementById("preview").style.width = pw + "px";
+      document.getElementById("preview").style.height = ph + "px";
+      document.getElementById("preview-label").textContent = w + " × " + h;
+    }
+
+    updatePreview(1920, 1080);
+  </script>
+</body>
+</html>
